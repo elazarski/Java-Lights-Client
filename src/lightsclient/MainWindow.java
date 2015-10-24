@@ -41,7 +41,7 @@ public class MainWindow {
 		}
 		
 		// create empty dirs file
-		File dirs = new File(appDataPath + "dirs.txt");
+		File dirs = new File(appDataPath + "dirs.xml");
 		try {
 			boolean success = dirs.createNewFile();
 			if (!success) {
