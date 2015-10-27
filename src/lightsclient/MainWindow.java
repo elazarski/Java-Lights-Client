@@ -1,7 +1,6 @@
 package lightsclient;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.concurrent.SynchronousQueue;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -26,36 +25,29 @@ public class MainWindow {
 	 * Launch the application.
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		
-		// check if appdata folder exists
-		String appDataPath = System.getProperty("user.home") + File.separator + "AppData" + File.separator + "Local" +
-				File.separator + "Lights Client" + File.separator + "Folders" + File.separator;
-		File appDataDir = new File(appDataPath);
-		if (!(appDataDir.exists() && appDataDir.isDirectory())) {
-			// create directory
-			boolean success = appDataDir.mkdirs();
-			if (!success) {
-				System.out.println("ERROR CREATING DIRECTORY!!!");
-			}
-		}
-		
-		// create empty dirs file
-		File dirs = new File(appDataPath + "dirs.xml");
-		try {
-			boolean success = dirs.createNewFile();
-			if (!success) {
-				System.out.println("ERROR CREATING FILE!!!");
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	static SynchronousQueue<String[]> queue;
+	
+	/**
+	 * @wbp.parser.entryPoint
+	 */
+	public static void main(SynchronousQueue<String[]> q)  {
+		queue = q;
 		
 		try {
 			MainWindow window = new MainWindow();
 			window.open();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		// notify main to exit
+		String[] exit = new String[1];
+		exit[0] = "exit";
+		try {
+			queue.put(exit);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -80,7 +72,7 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(226, 104);
+		shell.setSize(379, 208);
 		shell.setText("Lights Client");
 		
 		Menu menu = new Menu(shell, SWT.BAR);
@@ -99,11 +91,20 @@ public class MainWindow {
 				
 				FileDialog fd = new FileDialog(shell);
 				fd.setText("Open");
-				fd.setFilterPath(System.getProperty("user.home"));
+				
 				String[] filterExt = {"*.zip"};
 				fd.setFilterExtensions(filterExt);
 				String selected = fd.open();
-				System.out.println(selected);
+				
+				// construct String[] to send to main thread
+				String[] send = new String[2];
+				send[0] = "song";
+				send[1] = selected;
+				
+				// send data to main thread
+				if (selected != null) {
+					sendData(send);
+				}
 				
 			}
 		});
@@ -116,24 +117,46 @@ public class MainWindow {
 				
 				FileDialog fd = new FileDialog(shell);
 				fd.setText("Open");
-				fd.setFilterPath(System.getProperty("user.home"));
+				
 				String[] filterExt = {"*.xml"};
 				fd.setFilterExtensions(filterExt);
 				String selected = fd.open();
-				System.out.println(selected);
 				
+				// construct String[] to send to main thread
+				String[] send = new String[2];
+				send[0] = "setlist";
+				send[1] = selected;
+				
+				// send data to main thread
+				if (selected != null) {
+					sendData(send);
+				}
 			}
 		});
 		mntmOpenSetlist.setText("Open Setlist");
 		
+		MenuItem mntmMidi = new MenuItem(menu, SWT.NONE);
+		mntmMidi.setText("MIDI");
+		
 		Button btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
-		btnStart.setBounds(10, 10, 75, 25);
+		btnStart.setBounds(10, 114, 75, 25);
 		
 		Button btnStop = new Button(shell, SWT.NONE);
-		btnStop.setBounds(91, 10, 75, 25);
+		btnStop.setBounds(91, 114, 75, 25);
 		formToolkit.adapt(btnStop, true, true);
 		btnStop.setText("Stop");
 
 	}
 	
+	// sends data to main thread
+	private void sendData(String[] data) {
+		try {
+			queue.put(data);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.exit(1);
+		}
+	
+	}
 }
