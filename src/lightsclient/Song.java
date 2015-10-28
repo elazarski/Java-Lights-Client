@@ -9,8 +9,9 @@ public class Song {
 	private String title;
 	private ArrayList<Sequence> inputTracks;
 	private ArrayList<Sequence> outputTracks;
-	private long[] partTimes;
-	private long[] measureTimes;
+	private long tickLength;
+	private ArrayList<Long> partTimes;
+	private ArrayList<Long> measureTimes;
 	
 	// initialize title and ArrayList<Sequence>'s to "new ArrayList<Sequence>();"
 	public Song(String title) {
@@ -31,15 +32,25 @@ public class Song {
 	}
 	
 	// add partTimes
-	public void addPartTimes(long[] p) {
+	public void addPartTimes(ArrayList<Long> p) {
 		partTimes = p;
 	}
 	
 	// add measure Times
-	public void addMeasureTimes(long[] m) {
+	public void addMeasureTimes(ArrayList<Long> m) {
 		measureTimes = m;
 	}
 	
+	// set tickLength
+	public void setTickLength(long l) {
+		tickLength = l;
+	}
+
+	// get tickLength
+	public long getTickLength() {
+		return tickLength;
+	}
+
 	// get specific input track
 	Sequence getInputTrack(int track) {
 		return inputTracks.get(track);

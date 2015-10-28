@@ -118,7 +118,7 @@ public class MainWindow {
 				FileDialog fd = new FileDialog(shell);
 				fd.setText("Open");
 				
-				String[] filterExt = {"*.xml"};
+				String[] filterExt = {"*.txt"};
 				fd.setFilterExtensions(filterExt);
 				String selected = fd.open();
 				
