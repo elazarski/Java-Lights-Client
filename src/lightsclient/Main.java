@@ -2,7 +2,6 @@ package lightsclient;
 
 import java.io.IOException;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.TimeUnit;
 
 import javax.sound.midi.InvalidMidiDataException;
 
@@ -25,8 +24,10 @@ public class Main {
 		mainWindow.setName("UI Thread");
 		mainWindow.start();
 		
-		// create file reader
+		// create variables
 		MyReader reader = new MyReader();
+		Setlist setlist = new Setlist();
+		MidiInterface m = new MidiInterface();
 		
 		// main loop
 		while (mainWindow.isAlive()) {
@@ -35,18 +36,29 @@ public class Main {
 				
 				// check command
 				if (command[0].equals("song")) {
-					Song s = null;
-					s = reader.readSong(command[1]);
-					
+					Song s = reader.readSong(command[1]);
+					setlist.addSong(s);
 					// update UI
+					String[] w = new String[1];
+					w[0] = s.toString();
+					windowQueue.put(w);
 					
 				} else if (command[0].equals("setlist")) {
 					Song[] s = reader.readSetlist(command[1]);
 					
 					// update UI
 					
+					
 				} else if (command[0].equals("exit")) {
 					break;
+				} else if (command[0].equals("reorder")) {
+					String[] newOrder = new String[command.length - 1];
+					
+					for (int i = 0; i < newOrder.length; i++) {
+						newOrder[i] = command[i + 1];
+					}
+					
+					setlist.reorder(newOrder);
 				}
 			} catch (InterruptedException | IOException | InvalidMidiDataException e) {
 				// TODO Auto-generated catch block

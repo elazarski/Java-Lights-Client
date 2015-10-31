@@ -15,11 +15,18 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.widgets.List;
 
 public class MainWindow {
 
 	protected Shell shell;
 	private final FormToolkit formToolkit = new FormToolkit(Display.getDefault());
+	private Label songLabel;
+	private List setlistList;
+	private Button btnStart, btnStop, btnUpButton, btnDownButton;
+	private int selectedSong;
 
 	/**
 	 * Launch the application.
@@ -72,7 +79,7 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(379, 208);
+		shell.setSize(379, 156);
 		shell.setText("Lights Client");
 		
 		Menu menu = new Menu(shell, SWT.BAR);
@@ -104,6 +111,15 @@ public class MainWindow {
 				// send data to main thread
 				if (selected != null) {
 					sendData(send);
+					
+					// update UI
+					try {
+						String song = queue.take()[0];
+						addSong(song);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 				}
 				
 			}
@@ -138,13 +154,114 @@ public class MainWindow {
 		MenuItem mntmMidi = new MenuItem(menu, SWT.NONE);
 		mntmMidi.setText("MIDI");
 		
-		Button btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
-		btnStart.setBounds(10, 114, 75, 25);
+		btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
+		btnStart.setEnabled(false);
+		btnStart.setBounds(10, 62, 75, 25);
 		
-		Button btnStop = new Button(shell, SWT.NONE);
-		btnStop.setBounds(91, 114, 75, 25);
+		btnStop = new Button(shell, SWT.NONE);
+		btnStop.setEnabled(false);
+		btnStop.setBounds(91, 62, 75, 25);
 		formToolkit.adapt(btnStop, true, true);
 		btnStop.setText("Stop");
+		
+		Label lblCurrentSong = new Label(shell, SWT.NONE);
+		lblCurrentSong.setBounds(10, 10, 75, 15);
+		formToolkit.adapt(lblCurrentSong, true, true);
+		lblCurrentSong.setText("Current Song:");
+		
+		songLabel = new Label(shell, SWT.BORDER);
+		songLabel.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.NORMAL));
+		songLabel.setBounds(10, 31, 156, 25);
+		formToolkit.adapt(songLabel, true, true);
+		
+		Label lblSetlist = new Label(shell, SWT.NONE);
+		lblSetlist.setBounds(167, 10, 34, 15);
+		formToolkit.adapt(lblSetlist, true, true);
+		lblSetlist.setText("Setlist:");
+		
+		setlistList = new List(shell, SWT.BORDER | SWT.V_SCROLL);
+		setlistList.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				selectedSong = setlistList.getSelectionIndex();
+			}
+		});
+		setlistList.setEnabled(true);
+		setlistList.setBounds(213, 10, 140, 77);
+		formToolkit.adapt(setlistList, true, true);
+		
+		btnUpButton = new Button(shell, SWT.NONE);
+		btnUpButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// have to reorder what is in the list
+				
+				// check first if the top is selected
+				if (selectedSong == 0) {
+					return;
+				}
+				
+				String[] songs = setlistList.getItems();
+				String selected = songs[selectedSong];
+				String moved = songs[selectedSong - 1];
+				
+				songs[selectedSong - 1] = selected;
+				songs[selectedSong] = moved;
+				
+				// update UI
+				setlistList.setItems(songs);
+				
+				// update main thread
+				String[] data = new String[songs.length + 1];
+				data[0] = "reorder";
+				
+				for (int i = 0; i < songs.length; i++) {
+					data[i + 1] = songs[i];
+				}
+				
+				sendData(data);
+			}
+		});
+		btnUpButton.setEnabled(false);
+		btnUpButton.setText("\u25B2");
+		btnUpButton.setBounds(195, 37, 12, 15);
+		formToolkit.adapt(btnUpButton, true, true);
+		
+		btnDownButton = new Button(shell, SWT.NONE);
+		btnDownButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// have to reorder what is in the list
+				String[] songs = setlistList.getItems();
+				
+				// check if the last item is selected first
+				if (selectedSong == songs.length - 1) {
+					return;
+				}
+				String selected = songs[selectedSong];
+				String moved = songs[selectedSong + 1];
+				
+				songs[selectedSong + 1] = selected;
+				songs[selectedSong] = moved;
+				
+				// update UI
+				setlistList.setItems(songs);
+				
+				// update main thread
+				String[] data = new String[songs.length + 1];
+				data[0] = "reorder";
+				
+				for (int i = 0; i < songs.length; i++) {
+					data[i + 1] = songs[i];
+				}
+				
+				sendData(data);
+			}
+		});
+		btnDownButton.setEnabled(false);
+		btnDownButton.setText("\u25BC");
+		btnDownButton.setBounds(195, 62, 12, 15);
+		formToolkit.adapt(btnDownButton, true, true);
 
 	}
 	
@@ -158,5 +275,20 @@ public class MainWindow {
 			System.exit(1);
 		}
 	
+	}
+	
+	private void addSong(String title) {
+		setlistList.add(title);
+		
+		// check if start button enabled, if it is not, do so
+		if (!btnStart.getEnabled()) {
+			btnStart.setEnabled(true);
+		}
+		
+		// check if the up and down buttons should be enabled
+		if (setlistList.getItemCount() > 1) {
+			btnUpButton.setEnabled(true);
+			btnDownButton.setEnabled(true);
+		}
 	}
 }
