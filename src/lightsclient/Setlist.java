@@ -46,7 +46,6 @@ public class Setlist {
 	}
 	
 	public String[] getSongTitles() {
-		String[] ret = null;
 		
 		ArrayList<String> songNames = new ArrayList<String>();
 		
@@ -54,6 +53,7 @@ public class Setlist {
 			songNames.add(songs.get(i).toString());
 		}
 		
+		String[] ret = new String[songNames.size()];
 		ret = songNames.toArray(ret);
 		return ret;
 	}

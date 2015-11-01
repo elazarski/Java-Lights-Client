@@ -3,6 +3,7 @@ package lightsclient;
 
 // import statements
 import lightsclient.Song;
+import lightsclient.Setlist;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
@@ -102,8 +103,8 @@ public class MyReader {
 
 	// read setlist
 	// returns Song[] to be passed directly to player
-	Song[] readSetlist(String path) throws IOException, InvalidMidiDataException {
-		ArrayList<Song> retList = new ArrayList<Song>();
+	Setlist readSetlist(String path) throws IOException, InvalidMidiDataException {
+		Setlist ret = new Setlist();
 		
 		// first read .txt of setlist
 		// code modified from: http://stackoverflow.com/questions/16027229/reading-from-a-text-file-and-storing-in-a-string
@@ -124,13 +125,12 @@ public class MyReader {
 			lines.add(p);
 		}
 		
-		// fill retList by reading songs from lines
+		// read songs and return
 		for (int i = 0; i < lines.size(); i++) {
-			retList.add(readSong(lines.get(i)));
+			ret.addSong(readSong(lines.get(i)));
 		}
 		
-		Song[] ret = new Song[retList.size()];
-		ret = retList.toArray(ret);
+		
 		return ret;
 	}
 }

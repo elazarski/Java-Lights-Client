@@ -44,13 +44,13 @@ public class Main {
 					windowQueue.put(w);
 					
 				} else if (command[0].equals("setlist")) {
-					Song[] s = reader.readSetlist(command[1]);
+					setlist = reader.readSetlist(command[1]);
 					
 					// update UI
-					
+					windowQueue.put(setlist.getSongTitles());
 					
 				} else if (command[0].equals("exit")) {
-					break;
+					System.exit(0);
 				} else if (command[0].equals("reorder")) {
 					String[] newOrder = new String[command.length - 1];
 					
@@ -59,6 +59,11 @@ public class Main {
 					}
 					
 					setlist.reorder(newOrder);
+				} else if (command[0].equals("midi")) {
+					if (command[1].equals("names")) {
+						String[] names = m.getInputNames();
+						windowQueue.put(names);
+					}
 				}
 			} catch (InterruptedException | IOException | InvalidMidiDataException e) {
 				// TODO Auto-generated catch block

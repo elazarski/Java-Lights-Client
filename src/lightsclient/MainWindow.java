@@ -113,13 +113,8 @@ public class MainWindow {
 					sendData(send);
 					
 					// update UI
-					try {
-						String song = queue.take()[0];
-						addSong(song);
-					} catch (InterruptedException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					String song = getData()[0];
+					addSong(song);
 				}
 				
 			}
@@ -147,11 +142,31 @@ public class MainWindow {
 				if (selected != null) {
 					sendData(send);
 				}
+				
+				// get data to populate setlistList
+				String[] names = getData();
+				setlistList.setItems(names);
 			}
 		});
 		mntmOpenSetlist.setText("Open Setlist");
 		
 		MenuItem mntmMidi = new MenuItem(menu, SWT.NONE);
+		mntmMidi.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				// tell main to get the names of available input devices
+				String[] data = new String[2];
+				data[0] = "midi";
+				data[1] = "names";
+				sendData(data);
+				
+				// wait for names to come back
+				String[] names = getData();
+				
+				
+			}
+		});
 		mntmMidi.setText("MIDI");
 		
 		btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
@@ -275,6 +290,16 @@ public class MainWindow {
 			System.exit(1);
 		}
 	
+	}
+	
+	private String[] getData() {
+		try {
+			return queue.take();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	private void addSong(String title) {
