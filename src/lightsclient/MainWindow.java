@@ -162,8 +162,10 @@ public class MainWindow {
 				sendData(data);
 				
 				// wait for names to come back
-				String[] names = getData();
-				
+				String[] inputNames = getData();
+				String[] outputNames = getData();
+				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
+				s.open();
 				
 			}
 		});
@@ -205,7 +207,7 @@ public class MainWindow {
 		setlistList.setBounds(213, 10, 140, 77);
 		formToolkit.adapt(setlistList, true, true);
 		
-		btnUpButton = new Button(shell, SWT.NONE);
+		btnUpButton = new Button(shell, SWT.CANCEL);
 		btnUpButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -242,7 +244,7 @@ public class MainWindow {
 		btnUpButton.setBounds(195, 37, 12, 15);
 		formToolkit.adapt(btnUpButton, true, true);
 		
-		btnDownButton = new Button(shell, SWT.NONE);
+		btnDownButton = new Button(shell, SWT.OK);
 		btnDownButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {

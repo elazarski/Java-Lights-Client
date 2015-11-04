@@ -37,6 +37,30 @@ public class MidiInterface {
 			}
 		}
 		
+		String[] ret = new String[listRet.size()];
+		ret = listRet.toArray(ret);
+		return ret;
+	}
+	
+	public String[] getOutputNames() {
+		ArrayList<String> listRet = new ArrayList<String>();
+		
+		// code found at: http://stackoverflow.com/questions/6937760/java-getting-input-from-midi-keyboard
+		MidiDevice.Info[] infos = MidiSystem.getMidiDeviceInfo();
+		for (int i = 0; i < infos.length; i++) {
+			try {
+				MidiDevice device = MidiSystem.getMidiDevice(infos[i]);
+				
+				// get name if this is an input port (available output)
+				if (device.getMaxReceivers() != 0) {
+					listRet.add(device.getDeviceInfo().getName().toString());
+				}
+			} catch (MidiUnavailableException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 		
 		String[] ret = new String[listRet.size()];
 		ret = listRet.toArray(ret);

@@ -61,8 +61,10 @@ public class Main {
 					setlist.reorder(newOrder);
 				} else if (command[0].equals("midi")) {
 					if (command[1].equals("names")) {
-						String[] names = m.getInputNames();
-						windowQueue.put(names);
+						String[] inputNames = m.getInputNames();
+						windowQueue.put(inputNames);
+						String[] outputNames = m.getOutputNames();
+						windowQueue.put(outputNames);
 					}
 				}
 			} catch (InterruptedException | IOException | InvalidMidiDataException e) {
