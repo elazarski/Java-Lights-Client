@@ -47,6 +47,7 @@ public class MyReader {
 		
 		// open .zip file
 		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
+		System.out.println(path);
 		ZipFile zipFile = new ZipFile(path);
 		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 		

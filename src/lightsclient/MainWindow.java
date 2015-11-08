@@ -18,6 +18,8 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.GridData;
 
 public class MainWindow {
 
@@ -79,8 +81,9 @@ public class MainWindow {
 	 */
 	protected void createContents() {
 		shell = new Shell();
-		shell.setSize(379, 156);
+		shell.setSize(327, 184);
 		shell.setText("Lights Client");
+		shell.setLayout(new GridLayout(4, false));
 		
 		Menu menu = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(menu);
@@ -165,38 +168,24 @@ public class MainWindow {
 				String[] inputNames = getData();
 				String[] outputNames = getData();
 				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
-				s.open();
+				String[][] selected = s.open();
 				
 			}
 		});
 		mntmMidi.setText("MIDI");
 		
-		btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
-		btnStart.setEnabled(false);
-		btnStart.setBounds(10, 62, 75, 25);
-		
-		btnStop = new Button(shell, SWT.NONE);
-		btnStop.setEnabled(false);
-		btnStop.setBounds(91, 62, 75, 25);
-		formToolkit.adapt(btnStop, true, true);
-		btnStop.setText("Stop");
-		
 		Label lblCurrentSong = new Label(shell, SWT.NONE);
-		lblCurrentSong.setBounds(10, 10, 75, 15);
 		formToolkit.adapt(lblCurrentSong, true, true);
 		lblCurrentSong.setText("Current Song:");
-		
-		songLabel = new Label(shell, SWT.BORDER);
-		songLabel.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.NORMAL));
-		songLabel.setBounds(10, 31, 156, 25);
-		formToolkit.adapt(songLabel, true, true);
+		Label label = new Label(shell, SWT.NONE);
+		formToolkit.adapt(label, true, true);
 		
 		Label lblSetlist = new Label(shell, SWT.NONE);
-		lblSetlist.setBounds(167, 10, 34, 15);
 		formToolkit.adapt(lblSetlist, true, true);
 		lblSetlist.setText("Setlist:");
 		
 		setlistList = new List(shell, SWT.BORDER | SWT.V_SCROLL);
+		setlistList.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, true, 1, 3));
 		setlistList.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -204,10 +193,15 @@ public class MainWindow {
 			}
 		});
 		setlistList.setEnabled(true);
-		setlistList.setBounds(213, 10, 140, 77);
 		formToolkit.adapt(setlistList, true, true);
 		
+		songLabel = new Label(shell, SWT.BORDER);
+		songLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 2, 1));
+		songLabel.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.NORMAL));
+		formToolkit.adapt(songLabel, true, true);
+		
 		btnUpButton = new Button(shell, SWT.CANCEL);
+		btnUpButton.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnUpButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -241,10 +235,19 @@ public class MainWindow {
 		});
 		btnUpButton.setEnabled(false);
 		btnUpButton.setText("\u25B2");
-		btnUpButton.setBounds(195, 37, 12, 15);
 		formToolkit.adapt(btnUpButton, true, true);
 		
-		btnDownButton = new Button(shell, SWT.OK);
+		btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
+		btnStart.setEnabled(false);
+		
+		btnStop = new Button(shell, SWT.NONE);
+		btnStop.setEnabled(false);
+		formToolkit.adapt(btnStop, true, true);
+		btnStop.setText("Stop");
+		
+		btnDownButton = new Button(shell, SWT.NONE);
+		btnDownButton.setText("\u25BC");
+		btnDownButton.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1));
 		btnDownButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -276,9 +279,9 @@ public class MainWindow {
 			}
 		});
 		btnDownButton.setEnabled(false);
-		btnDownButton.setText("\u25BC");
-		btnDownButton.setBounds(195, 62, 12, 15);
 		formToolkit.adapt(btnDownButton, true, true);
+		
+		shell.setSize(shell.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 	}
 	
