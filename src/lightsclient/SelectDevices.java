@@ -73,7 +73,7 @@ public class SelectDevices extends Dialog {
 	 * Open the dialog.
 	 * @return the result
 	 */
-	public String[][] open() {
+	public byte[][] open() {
 		createContents();
 		shell.open();
 		shell.layout();

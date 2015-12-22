@@ -34,12 +34,12 @@ public class MainWindow {
 	 * Launch the application.
 	 * @param args
 	 */
-	static SynchronousQueue<String[]> queue;
+	static SynchronousQueue<byte[]> queue;
 	
 	/**
 	 * @wbp.parser.entryPoint
 	 */
-	public static void main(SynchronousQueue<String[]> q)  {
+	public static void main(SynchronousQueue<byte[]> q)  {
 		queue = q;
 		
 		try {
@@ -51,8 +51,8 @@ public class MainWindow {
 		}
 		
 		// notify main to exit
-		String[] exit = new String[1];
-		exit[0] = "exit";
+		byte[] exit = new byte[1];
+		exit[0] = 0x0;
 		try {
 			queue.put(exit);
 		} catch (InterruptedException e) {
@@ -80,8 +80,10 @@ public class MainWindow {
 	 * Create contents of the window.
 	 */
 	protected void createContents() {
-		shell = new Shell();
+		shell = new Shell(SWT.SHELL_TRIM & (~SWT.RESIZE));
 		shell.setSize(327, 184);
+		
+		//shell.setMinimumSize(327,  184);
 		shell.setText("Lights Client");
 		shell.setLayout(new GridLayout(4, false));
 		
@@ -107,16 +109,19 @@ public class MainWindow {
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread
-				String[] send = new String[2];
-				send[0] = "song";
-				send[1] = selected;
+				byte[] filePath = selected.getBytes();
+				byte[] send = new byte[filePath.length + 1];
+				send[0] = 0x1;
+				for (int i = 0; i < filePath.length; i++) {
+					send[i + 1] = filePath[i];
+				}
 				
 				// send data to main thread
 				if (selected != null) {
 					sendData(send);
 					
 					// update UI
-					String song = getData()[0];
+					String song = new String(getData());
 					addSong(song);
 				}
 				
@@ -137,9 +142,12 @@ public class MainWindow {
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread
-				String[] send = new String[2];
-				send[0] = "setlist";
-				send[1] = selected;
+				byte[] filePath = selected.getBytes();
+				byte[] send = new byte[selected.length() + 1];
+				send[0] = 0x2;
+				for (int i = 0; i < filePath.length; i++) {
+					send[i + 1] = filePath[i];
+				}
 				
 				// send data to main thread
 				if (selected != null) {
@@ -147,7 +155,7 @@ public class MainWindow {
 				}
 				
 				// get data to populate setlistList
-				String[] names = getData();
+				String[] names = new String(getData()).split("|");
 				setlistList.setItems(names);
 			}
 		});
@@ -159,16 +167,15 @@ public class MainWindow {
 			public void widgetSelected(SelectionEvent e) {
 				
 				// tell main to get the names of available input devices
-				String[] data = new String[2];
-				data[0] = "midi";
-				data[1] = "names";
+				byte[] data = new byte[1];
+				data[0] = 0x3;
 				sendData(data);
 				
 				// wait for names to come back
-				String[] inputNames = getData();
-				String[] outputNames = getData();
+				String[] inputNames = new String(getData()).split("|");
+				String[] outputNames = new String(getData()).split("|");
 				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
-				String[][] selected = s.open();
+				byte[][] selected = s.open();
 				
 			}
 		});
@@ -223,11 +230,13 @@ public class MainWindow {
 				setlistList.setItems(songs);
 				
 				// update main thread
-				String[] data = new String[songs.length + 1];
-				data[0] = "reorder";
+				byte[] allSongs = strToB(songs);
 				
-				for (int i = 0; i < songs.length; i++) {
-					data[i + 1] = songs[i];
+				// create byte[] to send to main
+				byte[] data = new byte[allSongs.length + 1];
+				data[0] = 0x4;
+				for (int i = 0; i < allSongs.length; i++) {
+					data[i + 1] = allSongs[i];
 				}
 				
 				sendData(data);
@@ -268,11 +277,13 @@ public class MainWindow {
 				setlistList.setItems(songs);
 				
 				// update main thread
-				String[] data = new String[songs.length + 1];
-				data[0] = "reorder";
+				byte[] allSongs = strToB(songs);
 				
-				for (int i = 0; i < songs.length; i++) {
-					data[i + 1] = songs[i];
+				byte[] data = new byte[allSongs.length + 1];
+				data[0] = 0x4;
+				
+				for (int i = 0; i < allSongs.length; i++) {
+					data[i + 1] = allSongs[i];
 				}
 				
 				sendData(data);
@@ -286,7 +297,7 @@ public class MainWindow {
 	}
 	
 	// sends data to main thread
-	private void sendData(String[] data) {
+	private void sendData(byte[] data) {
 		try {
 			queue.put(data);
 		} catch (InterruptedException e) {
@@ -297,7 +308,7 @@ public class MainWindow {
 	
 	}
 	
-	private String[] getData() {
+	private byte[] getData() {
 		try {
 			return queue.take();
 		} catch (InterruptedException e) {
@@ -320,5 +331,22 @@ public class MainWindow {
 			btnUpButton.setEnabled(true);
 			btnDownButton.setEnabled(true);
 		}
+	}
+	
+	// convert String[] to byte[]
+	private byte[] strToB(String[] strings) {
+		String allStrings = new String();
+		for (int i = 0; i < strings.length; i++) {
+			allStrings = allStrings.concat(strings[i]);
+			allStrings = allStrings.concat("|");
+		}
+		
+		// remove last '|'
+		allStrings = allStrings.substring(0, allStrings.length() - 1);
+		
+		// convert allStrings to byte[]
+		byte[] ret = allStrings.getBytes();
+		
+		return ret;
 	}
 }
