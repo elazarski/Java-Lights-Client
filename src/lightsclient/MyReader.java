@@ -47,7 +47,6 @@ public class MyReader {
 		
 		// open .zip file
 		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
-		System.out.println(path);
 		ZipFile zipFile = new ZipFile(path);
 		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 		
@@ -121,9 +120,11 @@ public class MyReader {
 		
 		// get paths from lines
 		for (int i = 0; i < lines.size(); i++) {
-			String p = home + fileSeparator + lines.get(i).replace(':', fileSeparator);
-			lines.remove(i);
+			String p = home + fileSeparator + lines.get(0).replace(':', fileSeparator);
 			lines.add(p);
+	
+			// remove original line
+			lines.remove(0);
 		}
 		
 		// read songs and return

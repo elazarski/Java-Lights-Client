@@ -1,6 +1,7 @@
 package lightsclient;
 
 import java.util.concurrent.SynchronousQueue;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -109,6 +110,9 @@ public class MainWindow {
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread
+				if (selected == null) {
+					return;
+				}
 				byte[] filePath = selected.getBytes();
 				byte[] send = new byte[filePath.length + 1];
 				send[0] = 0x1;
@@ -122,7 +126,7 @@ public class MainWindow {
 					
 					// update UI
 					String song = new String(getData());
-					addSong(song);
+					setlistList.add(song);
 				}
 				
 			}
@@ -142,6 +146,9 @@ public class MainWindow {
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread
+				if (selected == null) {
+					return;
+				}
 				byte[] filePath = selected.getBytes();
 				byte[] send = new byte[selected.length() + 1];
 				send[0] = 0x2;
@@ -150,12 +157,10 @@ public class MainWindow {
 				}
 				
 				// send data to main thread
-				if (selected != null) {
-					sendData(send);
-				}
+				sendData(send);
 				
 				// get data to populate setlistList
-				String[] names = new String(getData()).split("|");
+				String[] names = new String(getData()).split(Pattern.quote("|"));
 				setlistList.setItems(names);
 			}
 		});
@@ -172,10 +177,10 @@ public class MainWindow {
 				sendData(data);
 				
 				// wait for names to come back
-				String[] inputNames = new String(getData()).split("|");
-				String[] outputNames = new String(getData()).split("|");
+				String[] inputNames = new String(getData()).split(Pattern.quote("|"));
+				String[] outputNames = new String(getData()).split(Pattern.quote("|"));
 				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
-				byte[][] selected = s.open();
+				String[][] selected = s.open();
 				
 			}
 		});
@@ -197,9 +202,25 @@ public class MainWindow {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				selectedSong = setlistList.getSelectionIndex();
+				
+				// activate reorder buttons
+				if (setlistList.getItemCount() > 1) {
+					btnUpButton.setEnabled(true);
+					btnDownButton.setEnabled(true);
+				}
 			}
 		});
 		setlistList.setEnabled(true);
+		setlistList.addListener(SWT.Activate, new Listener() {
+			
+			@Override
+			public void handleEvent(Event arg0) {
+			// activate start button if we have at least one song loaded
+				if (setlistList.getItemCount() > 0 && !btnStart.getEnabled()) {
+					btnStart.setEnabled(true);
+				}
+			}
+		});
 		formToolkit.adapt(setlistList, true, true);
 		
 		songLabel = new Label(shell, SWT.BORDER);
@@ -315,21 +336,6 @@ public class MainWindow {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
-		}
-	}
-	
-	private void addSong(String title) {
-		setlistList.add(title);
-		
-		// check if start button enabled, if it is not, do so
-		if (!btnStart.getEnabled()) {
-			btnStart.setEnabled(true);
-		}
-		
-		// check if the up and down buttons should be enabled
-		if (setlistList.getItemCount() > 1) {
-			btnUpButton.setEnabled(true);
-			btnDownButton.setEnabled(true);
 		}
 	}
 	

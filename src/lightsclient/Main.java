@@ -3,6 +3,7 @@ package lightsclient;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.SynchronousQueue;
+import java.util.regex.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
 
@@ -34,6 +35,7 @@ public class Main {
 		while (mainWindow.isAlive()) {
 			try {
 				byte[] command = windowQueue.take();
+				String path;
 				
 				// check command
 				switch (command[0]) {
@@ -45,7 +47,7 @@ public class Main {
 				case 0x1:
 					// open song
 					// get byte[] after command[1]
-					String path = new String(Arrays.copyOfRange(command, 1, command.length - 1));
+					path = new String(Arrays.copyOfRange(command, 1, command.length));
 					Song s = reader.readSong(path);
 					setlist.addSong(s);
 					
@@ -57,8 +59,8 @@ public class Main {
 				case 0x2:
 					// open setlist
 					// get byte[] after command[1]
-					String path1 = new String(Arrays.copyOfRange(command,  1,  command.length - 1));
-					setlist = reader.readSetlist(path1);
+					path = new String(Arrays.copyOfRange(command,  1,  command.length));
+					setlist = reader.readSetlist(path);
 					
 					// update UI
 					byte[] data = strToB(setlist.getSongTitles());
@@ -82,10 +84,11 @@ public class Main {
 				case 0x4:
 					// reorder setlist
 					// get byte[] after command[1]
-					String[] newOrder = new String(Arrays.copyOfRange(command,  1,  command.length - 1)).split("|");
+					String[] newOrder = new String(Arrays.copyOfRange(command,  1,  command.length)).split(Pattern.quote("|"));
 					
 					setlist.reorder(newOrder);	
 					break;
+					
 					
 				default:
 					// not implemented yet
