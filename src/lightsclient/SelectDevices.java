@@ -186,6 +186,19 @@ public class SelectDevices extends Dialog {
 			inputSpinners.add(spinner);
 			inputChannels[i] = 0;
 			
+			// automatically "connect" if needed to make things easier
+			if (inputNames[i].contains("loopMIDI")) {
+				// select as input
+				inputCombos.get(i).select(1);
+				
+				// get channel from end of string
+				String channelNumber = inputNames[i].substring(14);
+				int channel = new Integer(channelNumber).intValue();
+				
+				// select proper channel
+				inputSpinners.get(i).setSelection(channel);
+				inputSpinners.get(i).setEnabled(true);
+			}
 		}
 		
 		// output
@@ -200,6 +213,7 @@ public class SelectDevices extends Dialog {
 			
 			// add to outputCombos
 			// when dialog closes, this will be used to get user selections
+			outputCombos.add(combo);
 			outputComboSelections[i] = 0;
 			
 			// create output label and spinner
@@ -209,7 +223,17 @@ public class SelectDevices extends Dialog {
 			spinner.setEnabled(false);
 			spinner.setMinimum(1);
 			
+			// add to outputSpinners
+			outputSpinners.add(spinner);
+			
 			outputChannels[i] = 0;
+			
+			// automatically select
+			if (outputNames[i].contains("QLC")) {
+				// select
+				outputCombos.get(i).select(1);
+				outputSpinners.get(i).setEnabled(true);
+			}
 		}
 		
 		shell.setSize(tabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT));
