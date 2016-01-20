@@ -180,7 +180,7 @@ public class MainWindow {
 				String[] inputNames = new String(getData()).split(Pattern.quote("|"));
 				String[] outputNames = new String(getData()).split(Pattern.quote("|"));
 				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
-				String[][] selected = s.open();
+				MidiSelection selected = s.open();
 				
 			}
 		});

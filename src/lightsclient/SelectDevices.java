@@ -4,10 +4,8 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.custom.ScrolledComposite;
-
 import java.util.ArrayList;
 import java.util.Arrays;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Label;
@@ -73,7 +71,7 @@ public class SelectDevices extends Dialog {
 	 * Open the dialog.
 	 * @return the result
 	 */
-	public String[][] open() {
+	public MidiSelection open() {
 		createContents();
 		shell.open();
 		shell.layout();
@@ -85,21 +83,7 @@ public class SelectDevices extends Dialog {
 		}
 		display.dispose();
 		
-		String[][] ret = new String[2][];
-		ret[0] = inputNames;
-		ret[1] = outputNames;
-		
-		// append values where needed
-		for (int i = 0; i < inputNames.length; i++) {
-			String current = inputNames[i];
-			int selection = inputComboSelections[i];
-			
-			
-			if (selection == 1) { // input, must get channel
-				int channel = inputChannels[i];
-				
-			}
-		}
+		MidiSelection ret = new MidiSelection(inputNames, inputChannels, outputNames, outputChannels);
 		return ret;
 	}
 
@@ -151,7 +135,7 @@ public class SelectDevices extends Dialog {
 		btnCancel.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				shell.close();
+				shell.dispose();
 			}
 		});
 		btnCancel.setText("Cancel");
