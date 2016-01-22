@@ -77,6 +77,8 @@ public class Main {
 					windowQueue.put(outputNames);
 					
 					// wait for device selection
+					byte[] selectionObj = windowQueue.take();
+					boolean connected = m.connect(selectionObj);
 					
 					break;
 					

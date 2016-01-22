@@ -9,6 +9,10 @@ import java.util.Arrays;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.TabFolder;
@@ -81,7 +85,6 @@ public class SelectDevices extends Dialog {
 				display.sleep();
 			}
 		}
-		display.dispose();
 		
 		MidiSelection ret = new MidiSelection(inputNames, inputChannels, outputNames, outputChannels);
 		return ret;
@@ -128,6 +131,22 @@ public class SelectDevices extends Dialog {
 		scrolledCompositeOutput.setMinSize(compositeOutput.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 		
 		Button btnOkay = new Button(shell, SWT.NONE);
+		btnOkay.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				// populate inputChannels and outputChannels
+				for (int i = 0; i < inputNames.length; i++) {
+					inputChannels[i] = inputSpinners.get(i).getSelection();
+				}
+				for (int i = 0; i < outputNames.length; i++) {
+					outputChannels[i] = outputSpinners.get(i).getSelection();
+				}
+				
+				// return to main window
+				shell.dispose();
+			}
+		});
 		btnOkay.setText("Okay");
 		btnOkay.setLayoutData(new GridData(SWT.LEFT, SWT.BOTTOM, false, false));
 		
@@ -135,6 +154,15 @@ public class SelectDevices extends Dialog {
 		btnCancel.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				
+				// set all channels to 0 so that none are connected
+				for (int i = 0; i < inputChannels.length; i++) {
+					inputChannels[i] = 0;
+				}
+				for (int i = 0; i < outputChannels.length; i++) {
+					outputChannels[i] = 0;
+				}
+				
 				shell.dispose();
 			}
 		});
@@ -164,7 +192,6 @@ public class SelectDevices extends Dialog {
 						inputSpinners.get(index).setEnabled(true);
 					} else {
 						inputSpinners.get(index).setEnabled(false);
-						inputChannels[index] = 0;
 						inputSpinners.get(index).setSelection(0);
 					}
 				}
@@ -180,7 +207,7 @@ public class SelectDevices extends Dialog {
 			channelLabel.setText("Channel: ");
 			Spinner spinner = new Spinner(compositeInput, SWT.BORDER);
 			spinner.setEnabled(false);
-			spinner.setMinimum(1);
+			spinner.setMinimum(0);
 			spinner.setMaximum(16);
 			
 			inputSpinners.add(spinner);
@@ -196,6 +223,7 @@ public class SelectDevices extends Dialog {
 				int channel = new Integer(channelNumber).intValue();
 				
 				// select proper channel
+				inputSpinners.get(i).setMinimum(1);
 				inputSpinners.get(i).setSelection(channel);
 				inputSpinners.get(i).setEnabled(true);
 			}
@@ -221,7 +249,7 @@ public class SelectDevices extends Dialog {
 			outputLabel.setText("Output number: ");
 			Spinner spinner = new Spinner(compositeOutput, SWT.BORDER);
 			spinner.setEnabled(false);
-			spinner.setMinimum(1);
+			spinner.setMinimum(0);
 			
 			// add to outputSpinners
 			outputSpinners.add(spinner);
@@ -232,11 +260,15 @@ public class SelectDevices extends Dialog {
 			if (outputNames[i].contains("QLC")) {
 				// select
 				outputCombos.get(i).select(1);
+				outputSpinners.get(i).setSelection(1);
+				outputSpinners.get(i).setMinimum(1);
 				outputSpinners.get(i).setEnabled(true);
 			}
 		}
 		
-		shell.setSize(tabFolder.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
+		// set sizes
+		scrolledCompositeInput.setMinSize(compositeInput.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		scrolledCompositeOutput.setMinSize(compositeOutput.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		shell.setSize(tabFolder.computeSize(SWT.DEFAULT, 256));
 	}
 }

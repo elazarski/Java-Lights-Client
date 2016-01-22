@@ -5,9 +5,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
-public class MidiSelection {
+public class MidiSelection implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -900552899144549785L;
 	private int[] inputChannels;
 	private int[] outputChannels;
 	private String[] inputNames;
@@ -35,8 +40,58 @@ public class MidiSelection {
 	public String[] getOutputNames() {
 		return outputNames;
 	}
-
 	
+	public int getInputChannel(String name) {
+		// -1 means not found
+		int ret = -1;
+		
+		for (int i = 0; i < inputNames.length; i++) {
+			if (inputNames[i].equals(name)) {
+				return inputChannels[i];
+			}
+		}
+		
+		return ret;
+	}
+	
+	public int getOutputChannel(String name) {
+		// -1 means not found
+		int ret = -1;
+		
+		for (int i = 0; i < outputNames.length; i++) {
+			if (outputNames[i].equals(name)) {
+				return outputChannels[i];
+			}
+		}
+		
+		return ret;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		String ret = "INPUT:\n";
+		
+		for (int i = 0; i < inputChannels.length; i++) {
+			ret = ret.concat(inputNames[i] + ": ");
+			ret = ret.concat(inputChannels[i] + "\n");
+		}
+		
+		ret = ret.concat("\n");
+		ret = ret.concat("OUTPUT:\n");
+		
+		for (int i = 0; i < outputChannels.length; i++) {
+			ret = ret.concat(outputNames[i] + ": ");
+			ret = ret.concat(outputChannels[i] + "\n");
+		}
+		
+		ret = ret.concat("\n");
+		
+		return ret;
+	}
+
 	// code found at: http://stackoverflow.com/questions/5837698/converting-any-object-to-a-byte-array-in-java
 	public static byte[] serialize(Object obj) throws IOException {
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
@@ -46,9 +101,9 @@ public class MidiSelection {
 		return b.toByteArray();
 	}
 	
-	public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+	public static MidiSelection deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
 		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
 		ObjectInputStream o = new ObjectInputStream(b);
-		return o.readObject();
+		return (MidiSelection) o.readObject();
 	}
 }

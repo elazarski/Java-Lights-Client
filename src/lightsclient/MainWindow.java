@@ -1,5 +1,6 @@
 package lightsclient;
 
+import java.io.IOException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
@@ -179,9 +180,19 @@ public class MainWindow {
 				// wait for names to come back
 				String[] inputNames = new String(getData()).split(Pattern.quote("|"));
 				String[] outputNames = new String(getData()).split(Pattern.quote("|"));
-				SelectDevices s = new SelectDevices(shell, SWT.APPLICATION_MODAL, inputNames, outputNames);
+				SelectDevices s = new SelectDevices(new Shell(), SWT.APPLICATION_MODAL, inputNames, outputNames);
 				MidiSelection selected = s.open();
 				
+				// send data to main
+				try {
+					queue.put(MidiSelection.serialize(selected));
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		mntmMidi.setText("MIDI");
