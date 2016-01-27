@@ -31,6 +31,9 @@ public class Main {
 		Setlist setlist = new Setlist();
 		MidiInterface m = new MidiInterface();
 		
+		// create playThread, but do not start
+		Thread playThread;
+		
 		// main loop
 		while (mainWindow.isAlive()) {
 			try {
@@ -78,7 +81,7 @@ public class Main {
 					
 					// wait for device selection
 					byte[] selectionObj = windowQueue.take();
-					boolean connected = m.connect(selectionObj);
+					m.connect(selectionObj);
 					
 					break;
 					
@@ -89,6 +92,25 @@ public class Main {
 					String[] newOrder = new String(Arrays.copyOfRange(command,  1,  command.length)).split(Pattern.quote("|"));
 					
 					setlist.reorder(newOrder);	
+					break;
+					
+				case 0x5:
+					// start button pressed
+					playThread = new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							System.out.println("here");
+							m.play(null);
+						}
+					});
+					break;
+					
+					
+				case 0x6:
+					// stop button pressed
+					System.out.println("stop");
 					break;
 					
 					

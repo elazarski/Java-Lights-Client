@@ -5,6 +5,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -130,6 +131,9 @@ public class MainWindow {
 					setlistList.add(song);
 				}
 				
+				// enable start button
+				btnStart.setEnabled(true);
+				
 			}
 		});
 		mntmOpenSong.setText("Open Song");
@@ -163,6 +167,9 @@ public class MainWindow {
 				// get data to populate setlistList
 				String[] names = new String(getData()).split(Pattern.quote("|"));
 				setlistList.setItems(names);
+				
+				// activate start button
+				btnStart.setEnabled(true);
 			}
 		});
 		mntmOpenSetlist.setText("Open Setlist");
@@ -215,7 +222,7 @@ public class MainWindow {
 				selectedSong = setlistList.getSelectionIndex();
 				
 				// activate reorder buttons
-				if (setlistList.getItemCount() > 1) {
+				if (setlistList.getItemCount() > 1 && btnStart.isEnabled()) {
 					btnUpButton.setEnabled(true);
 					btnDownButton.setEnabled(true);
 				}
@@ -280,11 +287,44 @@ public class MainWindow {
 		
 		btnStart = formToolkit.createButton(shell, "Start", SWT.NONE);
 		btnStart.setEnabled(false);
+		btnStart.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				byte[] data = new byte[] {0x5};
+				sendData(data);
+				
+				btnStart.setEnabled(false);
+				btnStop.setEnabled(true);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				
+			}
+		});
 		
 		btnStop = new Button(shell, SWT.NONE);
 		btnStop.setEnabled(false);
 		formToolkit.adapt(btnStop, true, true);
 		btnStop.setText("Stop");
+		btnStop.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent arg0) {
+				byte[] data = new byte[] {0x6};
+				sendData(data);
+				
+				btnStart.setEnabled(true);
+				btnStop.setEnabled(false);
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		
 		btnDownButton = new Button(shell, SWT.NONE);
 		btnDownButton.setText("\u25BC");

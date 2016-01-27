@@ -86,6 +86,14 @@ public class SelectDevices extends Dialog {
 			}
 		}
 		
+		// decrease all channels by 1, MIDI starts at 0, but people read at 1
+		for (int i = 0; i < inputChannels.length; i++) {
+			inputChannels[i]--;
+		}
+		for (int i = 0; i < outputChannels.length; i++) {
+			outputChannels[i]--;
+		}
+		
 		MidiSelection ret = new MidiSelection(inputNames, inputChannels, outputNames, outputChannels);
 		return ret;
 	}

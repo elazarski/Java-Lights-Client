@@ -1,12 +1,13 @@
 package lightsclient;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
+import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
 import lightsclient.MidiSelection;
@@ -15,15 +16,17 @@ public class MidiInterface {
 	
 	private MidiDevice.Info[] infos;
 	private ArrayList<MidiDevice> inputDevices;
+	private ArrayList<Transmitter> inputTransmitters;
 	private ArrayList<MidiDevice> outputDevices;
-	private ArrayList<Transmitter> transmitters;
+	private ArrayList<Receiver> outputReceivers; 
 	
 	public MidiInterface() {
 		infos = MidiSystem.getMidiDeviceInfo();
 		
 		inputDevices = new ArrayList<MidiDevice>();
+		inputTransmitters = new ArrayList<Transmitter>();
 		outputDevices = new ArrayList<MidiDevice>();
-		transmitters = new ArrayList<Transmitter>();
+		outputReceivers = new ArrayList<Receiver>();
 	}
 	
 	public String[] getInputNames() {
@@ -73,10 +76,26 @@ public class MidiInterface {
 		return ret;
 	}
 	
-	public boolean connect(byte[] selectionObj) {
-		boolean ret = false;
+	public void connect(byte[] selectionObj) {
 		try {
 			MidiSelection selection = MidiSelection.deserialize(selectionObj);
+			
+			// set sizes for MIDI I/O ArrayLists
+			int maxInputChannel = selection.getMaxInputChannel() + 1;
+			int maxOutputChannel = selection.getMaxOutputChannel();
+			inputDevices = new ArrayList<MidiDevice>(maxInputChannel);
+			inputTransmitters = new ArrayList<Transmitter>(maxInputChannel);
+			outputDevices = new ArrayList<MidiDevice>(maxOutputChannel);
+			outputReceivers = new ArrayList<Receiver>(maxOutputChannel);
+			
+			for (int i = -1; i < maxInputChannel; i++) {
+				inputDevices.add(null);
+				inputTransmitters.add(null);				
+			}
+			for (int i = -1; i < maxOutputChannel; i++) {
+				outputDevices.add(null);
+				outputReceivers.add(null);
+			}
 			
 			// attempt to connect based upon name
 			for (int i = 0; i < infos.length; i++) {
@@ -90,24 +109,22 @@ public class MidiInterface {
 					// get channel based upon name
 					int channel = selection.getInputChannel(name);
 					
-					// connect if channel is >= 1
-					if (channel >= 1) {
-						inputDevices.add(device);
+					// connect if channel is >= 0
+					if (channel >= 0) {
+						inputTransmitters.set(channel, device.getTransmitter());
+						inputDevices.set(channel, device);
 					}
 				} else if (device.getMaxReceivers() != 0) { // input port (available output)
 					// get channel based upon name
 					int channel = selection.getOutputChannel(name);
 					
 					// connect if channel is >= 1
-					if (channel >= 1) {
-						outputDevices.add(device);
+					if (channel >= 0) {
+						outputReceivers.set(channel, device.getReceiver());
+						outputDevices.set(channel, device);
 					}
 				}
-			}
-			
-			// sort based upon channel for devices
-			
-			
+			}			
 		} catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -119,7 +136,17 @@ public class MidiInterface {
 			e.printStackTrace();
 		}
 		
-		return ret;
+	}
+	
+	public void play(Setlist setlist) {
+		System.out.println("In play");
+		try {
+			Thread.sleep(10000);
+			System.out.println("Woke up from sleep");
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 }

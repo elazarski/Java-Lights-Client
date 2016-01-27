@@ -9,9 +9,6 @@ import java.io.Serializable;
 
 public class MidiSelection implements Serializable {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -900552899144549785L;
 	private int[] inputChannels;
 	private int[] outputChannels;
@@ -54,6 +51,17 @@ public class MidiSelection implements Serializable {
 		return ret;
 	}
 	
+	public int getMaxInputChannel() {
+		int max = 0;
+		for (int i = 0; i < inputChannels.length; i++) {
+			if (inputChannels[i] > max) {
+				max = inputChannels[i];
+			}
+		}
+		
+		return max;
+	}
+	
 	public int getOutputChannel(String name) {
 		// -1 means not found
 		int ret = -1;
@@ -65,6 +73,17 @@ public class MidiSelection implements Serializable {
 		}
 		
 		return ret;
+	}
+	
+	public int getMaxOutputChannel() {
+		int max = 0;
+		for (int i = 0; i < outputChannels.length; i++) {
+			if (outputChannels[i] > max) {
+				max = outputChannels[i];
+			}
+		}
+		
+		return max;
 	}
 	
 	/* (non-Javadoc)
