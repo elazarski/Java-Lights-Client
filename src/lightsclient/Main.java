@@ -96,15 +96,19 @@ public class Main {
 					
 				case 0x5:
 					// start button pressed
+					
+					final Setlist finalSetlist = setlist;
 					playThread = new Thread(new Runnable() {
 						
 						@Override
 						public void run() {
 							// TODO Auto-generated method stub
 							System.out.println("here");
-							m.play(null);
+							m.play(finalSetlist);
 						}
 					});
+					playThread.setName("playThread");
+					playThread.start();
 					break;
 					
 					
