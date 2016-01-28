@@ -21,6 +21,15 @@ public class Song {
 		this.title = title;
 	}
 	
+	// get number of input and output tracks
+	public int numInput() {
+		return inputTracks.size();
+	}
+	
+	public int numOutput() {
+		return outputTracks.size();
+	}
+	
 	// add input track
 	public void addInput(Sequence track) {
 		inputTracks.add(track);

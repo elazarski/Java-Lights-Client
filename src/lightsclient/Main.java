@@ -31,8 +31,9 @@ public class Main {
 		Setlist setlist = new Setlist();
 		MidiInterface m = new MidiInterface();
 		
-		// create playThread, but do not start
+		// create playThread data, but do not start
 		Thread playThread;
+		SynchronousQueue<byte[]> playQueue = new SynchronousQueue<>();
 		
 		// main loop
 		while (mainWindow.isAlive()) {
@@ -91,7 +92,7 @@ public class Main {
 					// get byte[] after command[1]
 					String[] newOrder = new String(Arrays.copyOfRange(command,  1,  command.length)).split(Pattern.quote("|"));
 					
-					setlist.reorder(newOrder);	
+					setlist.reorder(newOrder);
 					break;
 					
 				case 0x5:
@@ -102,9 +103,7 @@ public class Main {
 						
 						@Override
 						public void run() {
-							// TODO Auto-generated method stub
-							System.out.println("here");
-							m.play(finalSetlist);
+							m.play(finalSetlist, playQueue);
 						}
 					});
 					playThread.setName("playThread");

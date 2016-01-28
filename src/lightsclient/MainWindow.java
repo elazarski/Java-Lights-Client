@@ -229,16 +229,6 @@ public class MainWindow {
 			}
 		});
 		setlistList.setEnabled(true);
-		setlistList.addListener(SWT.Activate, new Listener() {
-			
-			@Override
-			public void handleEvent(Event arg0) {
-			// activate start button if we have at least one song loaded
-				if (setlistList.getItemCount() > 0 && !btnStart.getEnabled()) {
-					btnStart.setEnabled(true);
-				}
-			}
-		});
 		formToolkit.adapt(setlistList, true, true);
 		
 		songLabel = new Label(shell, SWT.BORDER);
@@ -296,6 +286,7 @@ public class MainWindow {
 				
 				btnStart.setEnabled(false);
 				btnStop.setEnabled(true);
+				setlistList.setEnabled(false);
 			}
 			
 			@Override
@@ -317,6 +308,7 @@ public class MainWindow {
 				
 				btnStart.setEnabled(true);
 				btnStop.setEnabled(false);
+				setlistList.setEnabled(true);
 			}
 			
 			@Override

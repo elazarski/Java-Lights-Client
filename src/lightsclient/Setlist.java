@@ -62,6 +62,10 @@ public class Setlist {
 		return songs.get(index).toString();
 	}
 	
+	public int getNumSongs() {
+		return songs.size();
+	}
+	
 	public void restart() {
 		songs = new ArrayList<Song>();
 	}

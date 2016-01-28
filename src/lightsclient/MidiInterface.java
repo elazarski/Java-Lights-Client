@@ -3,6 +3,7 @@ package lightsclient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.SynchronousQueue;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
@@ -19,6 +20,8 @@ public class MidiInterface {
 	private ArrayList<Transmitter> inputTransmitters;
 	private ArrayList<MidiDevice> outputDevices;
 	private ArrayList<Receiver> outputReceivers; 
+	
+	private SynchronousQueue<byte[]> queue;
 	
 	public MidiInterface() {
 		infos = MidiSystem.getMidiDeviceInfo();
@@ -138,14 +141,27 @@ public class MidiInterface {
 		
 	}
 	
-	public void play(Setlist setlist) {
-		System.out.println("In play");
-		try {
-			Thread.sleep(10000);
-			System.out.println("Woke up from sleep");
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void play(Setlist setlist, SynchronousQueue<byte[]> q) {
+		queue = q;
+		
+		// play songs
+		for (int i = 0; i < setlist.getNumSongs(); i++) {
+			Song s = setlist.getSong(i);
+			try {
+				// update main, which will update UI
+				queue.put(new byte[] {0x1});
+				queue.put(s.toString().getBytes());
+				
+				// create MyReceiver objects for each required input
+				int numInput = s.numInput();
+				for (int j = 0; j < numInput; j++) {
+					
+				}
+				
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	
