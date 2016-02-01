@@ -97,7 +97,7 @@ public class Main {
 					
 				case 0x5:
 					// start button pressed
-					
+					//m.play(setlist, playQueue);
 					final Setlist finalSetlist = setlist;
 					playThread = new Thread(new Runnable() {
 						

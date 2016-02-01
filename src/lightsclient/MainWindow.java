@@ -32,6 +32,8 @@ public class MainWindow {
 	private List setlistList;
 	private Button btnStart, btnStop, btnUpButton, btnDownButton;
 	private int selectedSong;
+	private boolean midiReady = false;
+	private boolean setlistReady = false;
 
 	/**
 	 * Launch the application.
@@ -132,7 +134,10 @@ public class MainWindow {
 				}
 				
 				// enable start button
-				btnStart.setEnabled(true);
+				setlistReady = true;
+				if (setlistReady && midiReady) {
+					btnStart.setEnabled(true);
+				}
 				
 			}
 		});
@@ -169,7 +174,10 @@ public class MainWindow {
 				setlistList.setItems(names);
 				
 				// activate start button
-				btnStart.setEnabled(true);
+				setlistReady = true;
+				if (setlistReady && midiReady) {
+					btnStart.setEnabled(true);
+				}
 			}
 		});
 		mntmOpenSetlist.setText("Open Setlist");
@@ -199,6 +207,11 @@ public class MainWindow {
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
+				}
+				midiReady = true;
+				
+				if (setlistReady && midiReady) {
+					btnStart.setEnabled(true);
 				}
 			}
 		});

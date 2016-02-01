@@ -61,13 +61,25 @@ public class Song {
 	}
 
 	// get specific input track
-	Sequence getInputTrack(int track) {
+	public Sequence getInputTrack(int track) {
 		return inputTracks.get(track);
 	}
 	
 	// get specific output track
-	Sequence getOutputTrack(int track) {
+	public Sequence getOutputTrack(int track) {
 		return outputTracks.get(track);
+	}
+	
+	public ArrayList<Sequence> getOutputTracks() {
+		return outputTracks;
+	}
+	
+	public ArrayList<Long> getPartTimes() {
+		return partTimes;
+	}
+	
+	public ArrayList<Long> getMeasureTimes() {
+		return measureTimes;
 	}
 	
 	// override toString()

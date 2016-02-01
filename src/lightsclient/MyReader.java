@@ -27,13 +27,11 @@ import java.util.zip.ZipFile;
 // it will return necessary data after file(s) have been read
 public class MyReader {
 	
-	private String os;
 	private String home;
 	private char fileSeparator;
 	
 	// initialize variables
 	public MyReader() {
-		os = System.getProperty("sun.desktop");
 		home = System.getProperty("user.home");
 		fileSeparator = File.separatorChar;
 	}

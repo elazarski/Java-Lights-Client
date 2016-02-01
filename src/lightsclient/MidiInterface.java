@@ -127,15 +127,22 @@ public class MidiInterface {
 						outputDevices.set(channel, device);
 					}
 				}
-			}			
+			}
+			
+			// connect to input and output devices
+			// TODO: REMOVE - 1 AND DEAL WITH CONTROL INPUT
+			for (int i = 0; i < inputDevices.size() - 1; i++) {
+				inputDevices.get(i).open();
+			}
+			for (int i = 0; i < outputDevices.size(); i++) {
+				outputDevices.get(i).open();
+			}
+			
 		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (MidiUnavailableException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -143,25 +150,28 @@ public class MidiInterface {
 	
 	public void play(Setlist setlist, SynchronousQueue<byte[]> q) {
 		queue = q;
-		
+	
 		// play songs
 		for (int i = 0; i < setlist.getNumSongs(); i++) {
 			Song s = setlist.getSong(i);
-			try {
-				// update main, which will update UI
-				queue.put(new byte[] {0x1});
-				queue.put(s.toString().getBytes());
-				
-				// create MyReceiver objects for each required input
-				int numInput = s.numInput();
-				for (int j = 0; j < numInput; j++) {
-					
-				}
-				
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			
+			// TODO: update main, which will update UI
+		//	queue.add(new byte[] {0x1});
+		//	queue.add(s.toString().getBytes());
+			
+			// create MyReceiver objects for each required input
+			int numInput = s.numInput();
+			for (int j = 0; j < numInput; j++) {
+				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(new Part(j, s)));
 			}
+			
+			while (true) {}
+			
+		}
+		
+		// close devices
+		for (int i = 0; i < inputDevices.size(); i++) {
+			inputDevices.get(i).close();
 		}
 	}
 	
