@@ -125,7 +125,7 @@ public class Part {
 						inChord = false;
 						numInChord = 0;
 						
-						checkNextMP();
+						//checkNextMP();
 					}
 					
 					return true;
@@ -138,7 +138,7 @@ public class Part {
 			
 			if ((input >= correctNote - 2) && (input <= correctNote + 2)) {
 				currentNote++;
-				checkNextMP();
+				//checkNextMP();
 				
 				return true;
 			}
