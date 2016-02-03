@@ -7,6 +7,8 @@ import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
 
+import org.eclipse.swt.widgets.Tracker;
+
 public class Part {
 	
 	private int currentNote;
@@ -41,48 +43,86 @@ public class Part {
 		Track[] t = seq.getTracks();
 		track = t[0];
 		
-		// add other tracks if needed
-		for (int i = 1; i < t.length; i++) {
-			for (int j = 0; j < t[i].size(); j++) {
-				track.add(t[i].get(j));
+		// make sure all events are 0x90
+		for (int i = 0; i < track.size();) {
+			MidiEvent ev = track.get(i);
+			MidiMessage m = ev.getMessage();
+			
+			if (m instanceof ShortMessage) {
+				ShortMessage sm = (ShortMessage)m;
+		
+				if (sm.getCommand() != ShortMessage.NOTE_ON) {
+				//	System.out.println("Not Note_on: " + sm.getCommand());
+					track.remove(ev);
+				} else {
+				//	System.out.println("NOTE_ON");
+					i++;
+				}
+			} else {
+			//	System.out.println("Not ShortMessage");
+				i++;
 			}
 		}
 		
+		// add other tracks if needed
+		for (int i = 1; i < t.length; i++) {
+			//System.out.println(t[i].size());
+			for (int j = 0; j < t[i].size(); j++) {
+				
+				// make sure event is 0x90
+				MidiEvent ev = t[i].get(i);
+				MidiMessage m = ev.getMessage();
+				
+				if (m instanceof ShortMessage) {
+					ShortMessage sm = (ShortMessage)m;
+				//	System.out.println(sm.getCommand());
+					if (sm.getCommand() == 0x90) {
+						System.out.println("NOTE_ON");
+						track.add(ev);
+					}
+				}
+			}
+		}
+		
+		System.out.println("Track length: " + track.size());
+
 		// populate chords
 		long previousTime = 0;
 		int numChords = 0;
+		chords.add(new ArrayList<Integer>(2));
+		boolean inChord = false;
 		for (int i = 1; i < track.size(); i++) {
+			// get current time
 			long currentTime = track.get(i).getTick();
+			System.out.println(track.get(i).getTick());
+			
+			// check if the past two notes have the same time
 			if (currentTime == previousTime) {
-
-				// for first chord
-				if (numChords > 0) {
+				// the past two notes are played at the same time (a chord)
+				
+				// check if we are already in a chord by checking chords
+				if (inChord) {
+					// previous chord is unfinished
 					
-					// check if already in chord
-					if (chords.get(numChords).size() > 1) {
-						
-						// check if chord is ending
-						long nextTime = track.get(i + 1).getTick();
-						if (nextTime != currentTime) {
-							
-							// finish current chord
-							chords.get(numChords).add(i);
-							numChords++;
-						}
+					// check if this is the last note in a chord
+					long nextTime = track.get(i + 1).getTick();
+					if (currentTime != nextTime) {
+						// chord is ending
+						chords.get(numChords).add(i);
+						inChord = false;
+						System.out.println("Chord ends at " + i);
 					}
 				} else {
-					// first chord
-					chords.add(new ArrayList<Integer>());
-					chords.get(0).add(i - 1);
+					// we must be at the second note in a chord
+					// start new chord in chords
+					chords.add(new ArrayList<Integer>(2));
+					numChords++;
+					inChord = true;
+					chords.get(numChords).add(i - 1);
+					System.out.println("Chord begins at " + (i - 1));
 				}
+				
 			}
-			
-			if (chords.get(0).get(0) == 0) {
-				inChord = true;
-			}
-			
-			// update prvious time
-			previousTime = currentTime;
 		}
 	
 		// turn sequences in outputSeq into tracks

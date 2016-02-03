@@ -54,9 +54,27 @@ public class MyReader {
 			Sequence sequence = MidiSystem.getSequence(zipFile.getInputStream(entry));
 			
 			// check name of current file
-			if (name.contains("i")) {
+			if (name.startsWith("i")) {
 				ret.addInput(sequence);
-			} else if (name.contains("o")) {
+				
+				Track[] track = sequence.getTracks();
+				for (int i = 0; i < track.length; i++) {
+					Track t = track[i];
+					
+					for (int j = 0; j < t.size(); j++) {
+						MidiEvent ev = t.get(i);
+						MidiMessage m = ev.getMessage();
+						
+						if (m instanceof ShortMessage) {
+							ShortMessage sm = (ShortMessage)m;
+							
+							if (sm.getCommand() == ShortMessage.NOTE_ON) {
+								System.out.println("Note On event");
+							}
+						}
+					}
+				}
+			} else if (name.startsWith("o")) {
 				ret.addOutput(sequence);
 			} else {
 				// m or p
@@ -84,7 +102,7 @@ public class MyReader {
 				}
 				
 				// check if m or p now
-				if (name.contains("p")) {
+				if (name.startsWith("p")) {
 					ret.addPartTimes(ticks);
 				} else {
 					ret.addMeasureTimes(ticks);
