@@ -7,8 +7,8 @@ import javax.sound.midi.Sequence;
 public class Song {
 
 	private String title;
-	private ArrayList<Sequence> inputTracks;
-	private ArrayList<Sequence> outputTracks;
+	private ArrayList<Part> inputTracks;
+	private ArrayList<Part> outputTracks;
 	private long tickLength;
 	private ArrayList<Long> partTimes;
 	private ArrayList<Long> measureTimes;
@@ -16,9 +16,6 @@ public class Song {
 	// initialize title and ArrayList<Sequence>'s to "new ArrayList<Sequence>();"
 	public Song(String title) {
 		// initialize variables
-		inputTracks = new ArrayList<Sequence>();
-		outputTracks = new ArrayList<Sequence>();
-		this.title = title;
 	}
 	
 	// get number of input and output tracks
@@ -31,13 +28,13 @@ public class Song {
 	}
 	
 	// add input track
-	public void addInput(Sequence track) {
-		inputTracks.add(track);
+	public void addInput(Part p) {
+		inputTracks.add(p);
 	}
 	
 	// add outputTrack
-	public void addOutput(Sequence track) {
-		outputTracks.add(track);
+	public void addOutput(Part p) {
+		outputTracks.add(p);
 	}
 	
 	// add partTimes
@@ -61,16 +58,16 @@ public class Song {
 	}
 
 	// get specific input track
-	public Sequence getInputTrack(int track) {
-		return inputTracks.get(track);
+	public Part getInputTrack(int index) {
+		return inputTracks.get(index);
 	}
 	
 	// get specific output track
-	public Sequence getOutputTrack(int track) {
-		return outputTracks.get(track);
+	public Part getOutputTrack(int index) {
+		return outputTracks.get(index);
 	}
 	
-	public ArrayList<Sequence> getOutputTracks() {
+	public ArrayList<Part> getOutputTracks() {
 		return outputTracks;
 	}
 	
@@ -87,6 +84,4 @@ public class Song {
 	public String toString() {
 		return title;
 	}
-	
-	
 }

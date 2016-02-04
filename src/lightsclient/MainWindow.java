@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.widgets.Label;
@@ -106,11 +107,12 @@ public class MainWindow {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				FileDialog fd = new FileDialog(shell);
+				
+				DirectoryDialog fd = new DirectoryDialog(shell);
 				fd.setText("Open");
 				
-				String[] filterExt = {"*.zip"};
-				fd.setFilterExtensions(filterExt);
+				
+				
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread

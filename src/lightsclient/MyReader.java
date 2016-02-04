@@ -19,8 +19,17 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+
+import org.jfugue.midi.MidiFileManager;
+import org.jfugue.parser.Parser;
+import org.jfugue.parser.ParserListenerAdapter;
+import org.jfugue.pattern.*;
+import org.jfugue.theory.Chord;
+import org.jfugue.theory.Note;
+import org.jfugue.midi.MidiTools;
 
 
 // this class only contains methods for reading files
@@ -45,41 +54,75 @@ public class MyReader {
 		
 		// open .zip file
 		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
-		ZipFile zipFile = new ZipFile(path);
-		Enumeration<? extends ZipEntry> entries = zipFile.entries();
+	//	ZipFile zipFile = new ZipFile(path);
+		//Enumeration<? extends ZipEntry> entries = zipFile.entries();
+		File folder = new File(path);
+		File[] files = folder.listFiles();
 		
-		while (entries.hasMoreElements()) {
-			ZipEntry entry = entries.nextElement();
-			String name = entry.getName();
-			Sequence sequence = MidiSystem.getSequence(zipFile.getInputStream(entry));
+		for (File f : files) {
+			String name = f.getName();
 			
-			// check name of current file
-			if (name.startsWith("i")) {
-				ret.addInput(sequence);
+			if (name.contains("xml")) {
+				// input
+				System.out.println(name);
+				Sequence seq = MidiSystem.getSequence(f);
+				Map m = MidiTools.sortMessagesByTick(seq);
 				
-				Track[] track = sequence.getTracks();
-				for (int i = 0; i < track.length; i++) {
-					Track t = track[i];
+				for (Object obj : m.keySet()) {
+					Long tick = (Long)obj;
 					
-					for (int j = 0; j < t.size(); j++) {
-						MidiEvent ev = t.get(i);
-						MidiMessage m = ev.getMessage();
-						
-						if (m instanceof ShortMessage) {
-							ShortMessage sm = (ShortMessage)m;
+					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
+					
+					for (MidiMessage msg : messages) {
+						if (msg instanceof ShortMessage) {
+							ShortMessage sm = (ShortMessage)msg;
 							
-							if (sm.getCommand() == ShortMessage.NOTE_ON) {
-								System.out.println("Note On event");
+							if (sm.getCommand() == 0x90) {
+								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
 							}
 						}
 					}
+					System.out.println();
+				}			}
+		}
+		
+		/*while (entries.hasMoreElements()) {
+			ZipEntry entry = entries.nextElement();
+			String name = entry.getName();
+			
+			// check name of current file
+			if (name.startsWith("i")) {
+				// input
+				System.out.println(name);
+				Sequence seq = MidiSystem.getSequence(zipFile.getInputStream(entry));
+				Map m = MidiTools.sortMessagesByTick(seq);
+				
+				for (Object obj : m.keySet()) {
+					Long tick = (Long)obj;
+					
+					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
+					
+					for (int i = 0; i < messages.size(); i++) {
+						MidiMessage msg = messages.get(i);
+						if (msg instanceof ShortMessage) {
+							ShortMessage sm = (ShortMessage)msg;
+							
+							if (sm.getCommand() == ShortMessage.NOTE_ON ) {
+								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
+							}
+						}
+					}
+					System.out.println();
 				}
+				
 			} else if (name.startsWith("o")) {
-				ret.addOutput(sequence);
+				// output
+				
 			} else {
 				// m or p
 				// get times whether it be m or p
-				long tickLength = sequence.getTickLength();
+			//
+				/*long tickLength = sequence.getTickLength();
 				ret.setTickLength(tickLength);
 				
 				// parse sequence, extracting the tick of each event
@@ -108,10 +151,10 @@ public class MyReader {
 					ret.addMeasureTimes(ticks);
 				}
 			}
-		}
+		}*/
 		
 		// close file
-		zipFile.close();
+		//zipFile.close();
 		
 		// return song that we have built
 		return ret;
