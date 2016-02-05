@@ -17,7 +17,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -54,37 +56,126 @@ public class MyReader {
 		
 		// open .zip file
 		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
-	//	ZipFile zipFile = new ZipFile(path);
-		//Enumeration<? extends ZipEntry> entries = zipFile.entries();
-		File folder = new File(path);
-		File[] files = folder.listFiles();
+		ZipFile zipFile = new ZipFile(path);
+		Enumeration<? extends ZipEntry> entries = zipFile.entries();
 		
-		for (File f : files) {
-			String name = f.getName();
+		while (entries.hasMoreElements()) {
+			ZipEntry entry = entries.nextElement();
+			String name = entry.getName();
 			
-			if (name.contains("xml")) {
-				// input
-				System.out.println(name);
-				Sequence seq = MidiSystem.getSequence(f);
-				Map m = MidiTools.sortMessagesByTick(seq);
+			if (name.startsWith("i")) {
+				InputStream in = zipFile.getInputStream(entry);
 				
-				for (Object obj : m.keySet()) {
-					Long tick = (Long)obj;
+				int c;
+				int index = 0;
+				long numTracks = 1;
+				long deltaTime = 0;
+				long trackLength = 0;
+				boolean singleTrack = false;
+				boolean multSync = false;
+				boolean multASync = false;
+				boolean inTrack = false;
+				boolean fileHeader = false;
+				boolean trackHeader = false;
+				
+				while ((c = in.read()) != -1) {
 					
-					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
-					
-					for (MidiMessage msg : messages) {
-						if (msg instanceof ShortMessage) {
-							ShortMessage sm = (ShortMessage)msg;
-							
-							if (sm.getCommand() == 0x90) {
-								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
-							}
+					// check index
+					if (index == 9) {
+						// file format, end of file header
+						switch (c) {
+						case 0:		// single track
+							singleTrack = true;
+							break;
+						case 1:		// Multiple tracks, synchronous
+							multSync = true;
+							break;
+						case 2:		// multiple tracks, asynchronous
+							multASync = true;
+							break;
+						default:
+							System.err.println("READING MIDI FILES INCORRECTLY");
 						}
+						
+					} else if (index == 10 && !singleTrack) {
+						// number of tracks in file
+						int d = in.read();
+						numTracks = c + d;
+						index++;
+					} else if (index == 12) {
+						// number of delta-time ticks per quarter note
+						int d = in.read();
+						deltaTime = c + d;
+						index++;
+						fileHeader = true;
+					} else if (!inTrack && index > 12) {
+						// parse track header
+						inTrack = true;
+						for (int i = 0; i < 3; i++) {
+							c = in.read();
+							index++;
+						}
+						
+						int d = in.read();
+						index++;
+						int e = in.read();
+						index++;
+						int f = in.read();
+						index++;
+						
+						trackLength = c + d + e + f;
+						trackHeader = true;
+						
+					} else if (inTrack && trackHeader) {
+						// read whole MIDI event
+						
+						// time
+						long delta_time = c;
+						while (c > 0x80) {
+							c = in.read();
+							delta_time += c;
+							index++;
+						}
+						
+						// c is beginning of MIDI signal, check for NOTE_ON
+						if (c == 0x90) {
+							c = in.read();
+							index++;
+							System.out.println(delta_time + ": " + c);
+						}
+						
 					}
-					System.out.println();
-				}			}
+					
+					index++;
+				}
+				
+				zipFile.close();
+			}
 		}
+			
+//			if (name.contains("xml")) {
+//				// input
+//				System.out.println(name);
+//				Sequence seq = MidiSystem.getSequence(f);
+//				Map m = MidiTools.sortMessagesByTick(seq);
+//				
+//				for (Object obj : m.keySet()) {
+//					Long tick = (Long)obj;
+//					
+//					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
+//					
+//					for (MidiMessage msg : messages) {
+//						if (msg instanceof ShortMessage) {
+//							ShortMessage sm = (ShortMessage)msg;
+//							
+//							if (sm.getCommand() == 0x90) {
+//								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
+//							}
+//						}
+//					}
+//					System.out.println();
+//				}			}
+		
 		
 		/*while (entries.hasMoreElements()) {
 			ZipEntry entry = entries.nextElement();

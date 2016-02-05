@@ -108,11 +108,12 @@ public class MainWindow {
 			public void widgetSelected(SelectionEvent e) {
 				
 				
-				DirectoryDialog fd = new DirectoryDialog(shell);
+				FileDialog fd = new FileDialog(shell);
 				fd.setText("Open");
 				
 				
-				
+				String[] ext = {"*.zip"};
+				fd.setFilterExtensions(ext);
 				String selected = fd.open();
 				
 				// construct String[] to send to main thread
