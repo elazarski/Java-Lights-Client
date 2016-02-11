@@ -7,6 +7,7 @@ import lightsclient.Setlist;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
+import javax.swing.plaf.FileChooserUI;
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiEvent;
 import javax.sound.midi.MidiMessage;
@@ -14,17 +15,24 @@ import javax.sound.midi.MidiSystem;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.jfugue.midi.MidiFileManager;
 import org.jfugue.parser.Parser;
 import org.jfugue.parser.ParserListenerAdapter;
@@ -51,108 +59,151 @@ public class MyReader {
 	Song readSong(String path) throws IOException, InvalidMidiDataException {		
 		// initialize Song with title
 		int lastIndexOf = path.lastIndexOf(fileSeparator) + 1;
-		String title = path.substring(lastIndexOf, path.length() - 4);		
+		String title = path.substring(lastIndexOf, path.length() - 4);	
+		
 		Song ret = new Song(title);
 		
-		// open .zip file
-		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
-		ZipFile zipFile = new ZipFile(path);
-		Enumeration<? extends ZipEntry> entries = zipFile.entries();
+		// code found at http://stackoverflow.com/questions/14402598/extract-a-tar-gz-file-in-java-jsp
+		TarArchiveInputStream tarInput = new TarArchiveInputStream(
+				new GZIPInputStream(new FileInputStream(path)));
 		
-		while (entries.hasMoreElements()) {
-			ZipEntry entry = entries.nextElement();
-			String name = entry.getName();
+		BufferedReader br = null;
+		TarArchiveEntry currentEntry;
+		while ((currentEntry = tarInput.getNextTarEntry()) != null) {
+			String fileName = currentEntry.getName();
 			
-			if (name.startsWith("i")) {
-				InputStream in = zipFile.getInputStream(entry);
+			// read file into memory
+			// code found at: http://www.leveluplunch.com/java/examples/read-file-into-string/
+			StringBuffer fileContents = new StringBuffer();
+			br = new BufferedReader(new InputStreamReader(tarInput));
+			String line;
+			while ((line = br.readLine()) != null) {
+				fileContents.append(line);
+			}
+			
+			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
+			if (fileName.contains("i")) {
+				// get channel
+				int channel = Integer.parseInt(fileName.substring(1));
+				Part p = new Part(channel, lines);
+				ret.addInput(p);
+			} else if (fileName.contains("o")) {
 				
-				int c;
-				int index = 0;
-				long numTracks = 1;
-				long deltaTime = 0;
-				long trackLength = 0;
-				boolean singleTrack = false;
-				boolean multSync = false;
-				boolean multASync = false;
-				boolean inTrack = false;
-				boolean fileHeader = false;
-				boolean trackHeader = false;
-				
-				while ((c = in.read()) != -1) {
+			} else {
+				// m or p
+				if (fileName.equals("m")) {
 					
-					// check index
-					if (index == 9) {
-						// file format, end of file header
-						switch (c) {
-						case 0:		// single track
-							singleTrack = true;
-							break;
-						case 1:		// Multiple tracks, synchronous
-							multSync = true;
-							break;
-						case 2:		// multiple tracks, asynchronous
-							multASync = true;
-							break;
-						default:
-							System.err.println("READING MIDI FILES INCORRECTLY");
-						}
-						
-					} else if (index == 10 && !singleTrack) {
-						// number of tracks in file
-						int d = in.read();
-						numTracks = c + d;
-						index++;
-					} else if (index == 12) {
-						// number of delta-time ticks per quarter note
-						int d = in.read();
-						deltaTime = c + d;
-						index++;
-						fileHeader = true;
-					} else if (!inTrack && index > 12) {
-						// parse track header
-						inTrack = true;
-						for (int i = 0; i < 3; i++) {
-							c = in.read();
-							index++;
-						}
-						
-						int d = in.read();
-						index++;
-						int e = in.read();
-						index++;
-						int f = in.read();
-						index++;
-						
-						trackLength = c + d + e + f;
-						trackHeader = true;
-						
-					} else if (inTrack && trackHeader) {
-						// read whole MIDI event
-						
-						// time
-						long delta_time = c;
-						while (c > 0x80) {
-							c = in.read();
-							delta_time += c;
-							index++;
-						}
-						
-						// c is beginning of MIDI signal, check for NOTE_ON
-						if (c == 0x90) {
-							c = in.read();
-							index++;
-							System.out.println(delta_time + ": " + c);
-						}
-						
-					}
-					
-					index++;
+				} else {
+					// p
 				}
-				
-				zipFile.close();
 			}
 		}
-			
+		
+		br.close();
+		tarInput.close();
+		// open .zip file
+		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
+//		ZipFile zipFile = new ZipFile(path);
+//		Enumeration<? extends ZipEntry> entries = zipFile.entries();
+//		
+//		while (entries.hasMoreElements()) {
+//			ZipEntry entry = entries.nextElement();
+//			String name = entry.getName();
+//			
+//			if (name.startsWith("i")) {
+//				InputStream in = zipFile.getInputStream(entry);
+//				
+//				int c;
+//				int index = 0;
+//				long numTracks = 1;
+//				long deltaTime = 0;
+//				long trackLength = 0;
+//				boolean singleTrack = false;
+//				boolean multSync = false;
+//				boolean multASync = false;
+//				boolean inTrack = false;
+//				boolean fileHeader = false;
+//				boolean trackHeader = false;
+//				
+//				while ((c = in.read()) != -1) {
+//					
+//					// check index
+//					if (index == 9) {
+//						// file format, end of file header
+//						switch (c) {
+//						case 0:		// single track
+//							singleTrack = true;
+//							break;
+//						case 1:		// Multiple tracks, synchronous
+//							multSync = true;
+//							break;
+//						case 2:		// multiple tracks, asynchronous
+//							multASync = true;
+//							break;
+//						default:
+//							System.err.println("READING MIDI FILES INCORRECTLY");
+//						}
+//						
+//					} else if (index == 10 && !singleTrack) {
+//						// number of tracks in file
+//						int d = in.read();
+//						numTracks = c + d;
+//						index++;
+//					} else if (index == 12) {
+//						// number of delta-time ticks per quarter note
+//						int d = in.read();
+//						deltaTime = c + d;
+//						index++;
+//						fileHeader = true;
+//					} else if (!inTrack && index > 12) {
+//						// parse track header
+//						inTrack = true;
+//						for (int i = 0; i < 3; i++) {
+//							c = in.read();
+//							index++;
+//						}
+//						
+//						int d = in.read();
+//						index++;
+//						int e = in.read();
+//						index++;
+//						int f = in.read();
+//						index++;
+//						
+//						trackLength = c + d + e + f;
+//						trackHeader = true;
+//						inTrack = true;
+//						
+//					} else if (inTrack && trackHeader) {
+//						// read whole MIDI event
+//						
+//						// time
+//						long delta_time = c;
+//						while (c > 0x80) {
+//							c = in.read();
+//							delta_time += c;
+//							index++;
+//						}
+//						delta_time += c;
+//						
+//						c = in.read();
+//						index++;
+//						// c is beginning of MIDI signal, check for NOTE_ON
+//						if (c >= 0x90 && c <= 0xA0) {
+//							int command = c;
+//							c = in.read();
+//							index++;
+//							System.out.println(Integer.toHexString(command) + " at " + delta_time + ": " + c);
+//						}
+//						
+//					}
+//					
+//					index++;
+//				}
+//			}
+//		}
+//		zipFile.close();
+//			
 //			if (name.contains("xml")) {
 //				// input
 //				System.out.println(name);

@@ -7,81 +7,53 @@ import javax.sound.midi.Sequence;
 public class Song {
 
 	private String title;
-	private ArrayList<Part> inputTracks;
-	private ArrayList<Part> outputTracks;
-	private long tickLength;
-	private ArrayList<Long> partTimes;
-	private ArrayList<Long> measureTimes;
+	private ArrayList<Part> input;
+	private ArrayList<Part> output;
+	private ArrayList<Long> measures;
+	private ArrayList<Long> parts;
 	
-	// initialize title and ArrayList<Sequence>'s to "new ArrayList<Sequence>();"
 	public Song(String title) {
-		// initialize variables
-	}
-	
-	// get number of input and output tracks
-	public int numInput() {
-		return inputTracks.size();
-	}
-	
-	public int numOutput() {
-		return outputTracks.size();
-	}
-	
-	// add input track
-	public void addInput(Part p) {
-		inputTracks.add(p);
-	}
-	
-	// add outputTrack
-	public void addOutput(Part p) {
-		outputTracks.add(p);
-	}
-	
-	// add partTimes
-	public void addPartTimes(ArrayList<Long> p) {
-		partTimes = p;
-	}
-	
-	// add measure Times
-	public void addMeasureTimes(ArrayList<Long> m) {
-		measureTimes = m;
-	}
-	
-	// set tickLength
-	public void setTickLength(long l) {
-		tickLength = l;
-	}
-
-	// get tickLength
-	public long getTickLength() {
-		return tickLength;
-	}
-
-	// get specific input track
-	public Part getInputTrack(int index) {
-		return inputTracks.get(index);
-	}
-	
-	// get specific output track
-	public Part getOutputTrack(int index) {
-		return outputTracks.get(index);
-	}
-	
-	public ArrayList<Part> getOutputTracks() {
-		return outputTracks;
-	}
-	
-	public ArrayList<Long> getPartTimes() {
-		return partTimes;
-	}
-	
-	public ArrayList<Long> getMeasureTimes() {
-		return measureTimes;
+		this.title = title;
+		
+		input = new ArrayList<Part>();
+		output = new ArrayList<Part>();
+		measures = new ArrayList<Long>();
+		parts = new ArrayList<Long>();
 	}
 	
 	// override toString()
 	@Override
 	public String toString() {
 		return title;
+	}
+	
+	// add input
+	public void addInput(Part p) {
+		input.add(p);
+	}
+	
+	// get input
+	public Part getInput(int index) {
+		return input.get(index);
+	}
+	
+	// add output
+	public void addOutput(Part p) {
+		output.add(p);
+	}
+	
+	// get output
+	public Part getOutput(int index) {
+		return output.get(index);
+	}
+	
+	// get measures
+	public ArrayList<Long> getMeasures() {
+		return measures;
+	}
+	
+	// get parts
+	public ArrayList<Long> getParts() {
+		return parts;
 	}
 }
