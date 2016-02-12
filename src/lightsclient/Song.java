@@ -8,7 +8,7 @@ public class Song {
 
 	private String title;
 	private ArrayList<Part> input;
-	private ArrayList<Part> output;
+	private ArrayList<OutputPart> output;
 	private ArrayList<Long> measures;
 	private ArrayList<Long> parts;
 	
@@ -16,7 +16,7 @@ public class Song {
 		this.title = title;
 		
 		input = new ArrayList<Part>();
-		output = new ArrayList<Part>();
+		output = new ArrayList<OutputPart>();
 		measures = new ArrayList<Long>();
 		parts = new ArrayList<Long>();
 	}
@@ -38,12 +38,12 @@ public class Song {
 	}
 	
 	// add output
-	public void addOutput(Part p) {
-		output.add(p);
+	public void addOutput(OutputPart o) {
+		output.add(o);
 	}
 	
 	// get output
-	public Part getOutput(int index) {
+	public OutputPart getOutput(int index) {
 		return output.get(index);
 	}
 	

@@ -153,6 +153,7 @@ public class Part {
 		notes = new ArrayList<Pair<Long, ArrayList<Integer>>>();
 		
 		for (String line : lines) {
+			System.out.println(line);
 			String[] elements = line.split(" ");
 			
 			// get time

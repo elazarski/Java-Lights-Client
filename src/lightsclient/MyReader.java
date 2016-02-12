@@ -4,42 +4,17 @@ package lightsclient;
 // import statements
 import lightsclient.Song;
 import lightsclient.Setlist;
-import javax.sound.midi.Sequence;
-import javax.sound.midi.ShortMessage;
-import javax.sound.midi.Track;
-import javax.swing.plaf.FileChooserUI;
 import javax.sound.midi.InvalidMidiDataException;
-import javax.sound.midi.MidiEvent;
-import javax.sound.midi.MidiMessage;
-import javax.sound.midi.MidiSystem;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Enumeration;
-import java.util.Map;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-import org.jfugue.midi.MidiFileManager;
-import org.jfugue.parser.Parser;
-import org.jfugue.parser.ParserListenerAdapter;
-import org.jfugue.pattern.*;
-import org.jfugue.theory.Chord;
-import org.jfugue.theory.Note;
-import org.jfugue.midi.MidiTools;
 
 
 // this class only contains methods for reading files
@@ -78,7 +53,10 @@ public class MyReader {
 			br = new BufferedReader(new InputStreamReader(tarInput));
 			String line;
 			while ((line = br.readLine()) != null) {
-				fileContents.append(line);
+				if (!line.equals(null)) {
+					fileContents.append(line);
+					fileContents.append(System.getProperty("line.separator"));
+				}
 			}
 			
 			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
@@ -88,7 +66,10 @@ public class MyReader {
 				Part p = new Part(channel, lines);
 				ret.addInput(p);
 			} else if (fileName.contains("o")) {
-				
+				// get channel
+				int channel = Integer.parseInt(fileName.substring(1));
+				OutputPart o = new OutputPart(channel, lines);
+				ret.addOutput(o);
 			} else {
 				// m or p
 				if (fileName.equals("m")) {

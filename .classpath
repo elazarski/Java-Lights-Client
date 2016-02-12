@@ -20,7 +20,6 @@
 	<classpathentry kind="lib" path="C:/Users/Eric/.p2/pool/plugins/org.eclipse.core.databinding.property_1.5.0.v20150422-0725.jar" sourcepath="C:/Users/Eric/.p2/pool/plugins/org.eclipse.core.databinding.property_1.5.0.v20150422-0725.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Eric/.p2/pool/plugins/org.eclipse.jface.databinding_1.7.0.v20150406-2148.jar" sourcepath="C:/Users/Eric/.p2/pool/plugins/org.eclipse.jface.databinding_1.7.0.v20150406-2148.jar"/>
 	<classpathentry kind="lib" path="swing2swt.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Eric/OneDrive/Workspace/Libraries/Java/jfugue-5.0.4.jar"/>
 	<classpathentry kind="lib" path="commons-compress-1.2.jar"/>
 	<classpathentry kind="lib" path="commons-lang3-3.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
