@@ -14,17 +14,14 @@ import org.eclipse.swt.widgets.Tracker;
 
 public class Part {
 	
-	private int currentNote;
-	private int currentChord;
-	private boolean inChord;
-	private int numInChord;
+	private int currentEvent;
 	private int currentMeasure;
 	private int currentPart;
 	
 	private int channel;
 	private Track track;
-	private ArrayList<Pair<Long, ArrayList<Integer> > > notes;		// index: time: notes
-	private ArrayList<OutputPart> output;
+	private ArrayList<Event> notes;		// index: time: notes
+	private ArrayList<Long> outputTimes;
 	private ArrayList<Long> partTimes;
 	private ArrayList<Long> measureTimes;
 	
@@ -147,29 +144,13 @@ public class Part {
 		this.channel = channel;
 		partTimes = new ArrayList<Long>();
 		measureTimes = new ArrayList<Long>();
-		output = new ArrayList<OutputPart>();
+		outputTimes = new ArrayList<Long>();
 		
 		// initialize notes
-		notes = new ArrayList<Pair<Long, ArrayList<Integer>>>();
+		notes = new ArrayList<Event>(lines.length);
 		
 		for (String line : lines) {
-			System.out.println(line);
-			String[] elements = line.split(" ");
-			
-			// get time
-			Long time = new Long(elements[0]);
-			
-			// get notes
-			ArrayList<Integer> chord = new ArrayList<Integer>();
-			for (int i = 1; i < elements.length; i++) {
-				chord.add(new Integer(elements[i]));
-			}
-			
-			// put into Pair
-			Pair<Long, ArrayList<Integer>> p = Pair.of(time, chord);
-			
-			// append to notes
-			notes.add(p);
+			notes.add(new Event(line));
 		}
 	}
 	

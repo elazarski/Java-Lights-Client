@@ -40,6 +40,11 @@ public class Song {
 	// add output
 	public void addOutput(OutputPart o) {
 		output.add(o);
+		
+		// add times to input parts
+		for (Part p : input) {
+			
+		}
 	}
 	
 	// get output
