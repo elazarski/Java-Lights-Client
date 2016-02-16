@@ -14,7 +14,9 @@ public class OutputPart {
 		notes = new ArrayList<Event>(lines.length);
 		
 		for (String line : lines) {
-			notes.add(new Event(line));
+			if (!line.equals("")) {
+				notes.add(new Event(line));
+			}
 		}
 	}
 	

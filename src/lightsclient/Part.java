@@ -21,7 +21,7 @@ public class Part {
 	private int channel;
 	private Track track;
 	private ArrayList<Event> notes;		// index: time: notes
-	private ArrayList<Long> outputTimes;
+	private ArrayList<Long[]> outputTimes;
 	private ArrayList<Long> partTimes;
 	private ArrayList<Long> measureTimes;
 	
@@ -144,13 +144,15 @@ public class Part {
 		this.channel = channel;
 		partTimes = new ArrayList<Long>();
 		measureTimes = new ArrayList<Long>();
-		outputTimes = new ArrayList<Long>();
+		outputTimes = new ArrayList<Long[]>();
 		
 		// initialize notes
 		notes = new ArrayList<Event>(lines.length);
 		
 		for (String line : lines) {
-			notes.add(new Event(line));
+			if (!line.equals("")) {
+				notes.add(new Event(line));
+			}
 		}
 	}
 	
@@ -158,66 +160,83 @@ public class Part {
 		return channel;
 	}
 	
-	// checks if input is acceptable to increase current note
-	public boolean isNext(int input) {
-	
-		// check if we are in a chord
-		if (inChord) {
-			
-			// create array to loop through
-			int chordLen = chords.get(currentChord).get(1) - chords.get(currentChord).get(0);
-			for (int i = 0; i < chordLen; i++) {
-				ShortMessage sm = (ShortMessage) track.get(currentNote + i).getMessage();
-				int correctNote = sm.getData1();
-				
-				if ((input >= correctNote - 2) && (input <= correctNote + 2)) {
-					currentNote++;
-					numInChord++;
-					
-					// check if chord is done
-					if (numInChord >= chordLen) {
-						inChord = false;
-						numInChord = 0;
-						
-						//checkNextMP();
-					}
-					
-					return true;
-				}
-			}
-		} else {
-			
-			ShortMessage sm = (ShortMessage)track.get(currentNote).getMessage();
-			int correctNote = sm.getData1();
-			
-			if ((input >= correctNote - 2) && (input <= correctNote + 2)) {
-				currentNote++;
-				//checkNextMP();
-				
-				return true;
-			}
+	public void addOutputTimes(long[] p) {
+		Long[] temp = new Long[p.length];
+		for (int i = 0; i < p.length; i++) {
+			temp[i] = p[i];
 		}
 		
-		return false;
+		outputTimes.add(temp);
 	}
 	
-	public boolean done() {
-		if (currentNote == track.size()) {
-			return true;
-		} else {
-			return false;
-		}
+	public void addMeasures(String lines) {
+		
 	}
 	
-	private void checkNextMP() {
-		// check if starting next measure or part
-		long nextTick = track.get(currentNote).getTick();
-		if (nextTick == measureTimes.get(currentMeasure + 1)) {
-			currentMeasure++;
-			if (nextTick == partTimes.get(currentPart + 1)) {
-				currentPart++;
-			}
-		}
+	public void addParts(String lines) {
+		
 	}
+	
+//	// checks if input is acceptable to increase current note
+//	public boolean isNext(int input) {
+//	
+//		// check if we are in a chord
+//		if (inChord) {
+//			
+//			// create array to loop through
+//			int chordLen = chords.get(currentChord).get(1) - chords.get(currentChord).get(0);
+//			for (int i = 0; i < chordLen; i++) {
+//				ShortMessage sm = (ShortMessage) track.get(currentNote + i).getMessage();
+//				int correctNote = sm.getData1();
+//				
+//				if ((input >= correctNote - 2) && (input <= correctNote + 2)) {
+//					currentNote++;
+//					numInChord++;
+//					
+//					// check if chord is done
+//					if (numInChord >= chordLen) {
+//						inChord = false;
+//						numInChord = 0;
+//						
+//						//checkNextMP();
+//					}
+//					
+//					return true;
+//				}
+//			}
+//		} else {
+//			
+//			ShortMessage sm = (ShortMessage)track.get(currentNote).getMessage();
+//			int correctNote = sm.getData1();
+//			
+//			if ((input >= correctNote - 2) && (input <= correctNote + 2)) {
+//				currentNote++;
+//				//checkNextMP();
+//				
+//				return true;
+//			}
+//		}
+//		
+//		return false;
+//	}
+//	
+//	public boolean done() {
+//		if (currentNote == track.size()) {
+//			return true;
+//		} else {
+//			return false;
+//		}
+//	}
+//	
+//	private void checkNextMP() {
+//		// check if starting next measure or part
+//		long nextTick = track.get(currentNote).getTick();
+//		if (nextTick == measureTimes.get(currentMeasure + 1)) {
+//			currentMeasure++;
+//			if (nextTick == partTimes.get(currentPart + 1)) {
+//				currentPart++;
+//			}
+//		}
+//	}
 	
 }

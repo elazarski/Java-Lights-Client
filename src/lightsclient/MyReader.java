@@ -6,10 +6,12 @@ import lightsclient.Song;
 import lightsclient.Setlist;
 import javax.sound.midi.InvalidMidiDataException;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
@@ -30,58 +32,96 @@ public class MyReader {
 		fileSeparator = File.separatorChar;
 	}
 	
+	private String readString(int length, DataInputStream dataInputStream) {
+		try {
+			char[] chars = new char[length];
+			for (int i = 0; i < chars.length; i++) {
+				chars[i] = dataInputStream.readChar();
+			}
+			return String.copyValueOf(chars);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	private String readUnsignedByteString(DataInputStream dataInputStream) {
+		try {
+			return readString(dataInputStream.read() & 0xFF, dataInputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
 	// reads .zip file and returns Song object
 	Song readSong(String path) throws IOException, InvalidMidiDataException {		
 		// initialize Song with title
-		int lastIndexOf = path.lastIndexOf(fileSeparator) + 1;
-		String title = path.substring(lastIndexOf, path.length() - 4);	
-		
+		DataInputStream dataInputStream = new DataInputStream(new FileInputStream(path));
+		String title = readUnsignedByteString(dataInputStream);
 		Song ret = new Song(title);
+		// read .tg file
 		
-		// code found at http://stackoverflow.com/questions/14402598/extract-a-tar-gz-file-in-java-jsp
-		TarArchiveInputStream tarInput = new TarArchiveInputStream(
-				new GZIPInputStream(new FileInputStream(path)));
 		
-		BufferedReader br = null;
-		TarArchiveEntry currentEntry;
-		while ((currentEntry = tarInput.getNextTarEntry()) != null) {
-			String fileName = currentEntry.getName();
-			
-			// read file into memory
-			// code found at: http://www.leveluplunch.com/java/examples/read-file-into-string/
-			StringBuffer fileContents = new StringBuffer();
-			br = new BufferedReader(new InputStreamReader(tarInput));
-			String line;
-			while ((line = br.readLine()) != null) {
-				if (!line.equals(null)) {
-					fileContents.append(line);
-					fileContents.append(System.getProperty("line.separator"));
-				}
-			}
-			
-			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
-			if (fileName.contains("i")) {
-				// get channel
-				int channel = Integer.parseInt(fileName.substring(1));
-				Part p = new Part(channel, lines);
-				ret.addInput(p);
-			} else if (fileName.contains("o")) {
-				// get channel
-				int channel = Integer.parseInt(fileName.substring(1));
-				OutputPart o = new OutputPart(channel, lines);
-				ret.addOutput(o);
-			} else {
-				// m or p
-				if (fileName.equals("m")) {
-					
-				} else {
-					// p
-				}
-			}
-		}
-		
-		br.close();
-		tarInput.close();
+//		int lastIndexOf = path.lastIndexOf(fileSeparator) + 1;
+//		String title = path.substring(lastIndexOf, path.length() - 4);	
+//		
+//		Song ret = new Song(title);
+//		
+//		// code found at http://stackoverflow.com/questions/14402598/extract-a-tar-gz-file-in-java-jsp
+//		TarArchiveInputStream tarInput = new TarArchiveInputStream(
+//				new GZIPInputStream(new FileInputStream(path)));
+//		
+//		BufferedReader br = null;
+//		TarArchiveEntry currentEntry;
+//		while ((currentEntry = tarInput.getNextTarEntry()) != null) {
+//			String fileName = currentEntry.getName();
+//			
+//			// read file into memory
+//			// code found at: http://www.leveluplunch.com/java/examples/read-file-into-string/
+//			StringBuffer fileContents = new StringBuffer();
+//			br = new BufferedReader(new InputStreamReader(tarInput));
+//			String line;
+//			while ((line = br.readLine()) != null) {
+//				if (!line.equals(null)) {
+//					fileContents.append(line);
+//					fileContents.append(System.getProperty("line.separator"));
+//				}
+//			}
+//			
+//			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
+//			if (fileName.contains("i")) {
+//				// get channel
+//				int channel = Integer.parseInt(fileName.substring(1));
+//				Part p = new Part(channel, lines);
+//				ret.addInput(p);
+//			} else if (fileName.contains("o")) {
+//				// get channel
+//				int channel = Integer.parseInt(fileName.substring(1));
+//				OutputPart o = new OutputPart(channel, lines);
+//				ret.addOutput(o);
+//				
+//				// give times to input parts
+//				for (Part p : ret.getAllInputParts()) {
+//					p.addOutputTimes(o.getTimes());
+//				}
+//			} else {
+//				// m or p
+//				if (fileName.equals("m")) {
+//					System.out.println(fileName);
+//					for (String line1 : lines) {
+//						System.out.println(line1);
+//					}
+//				} else {
+//					// p
+//				}
+//			}
+//		}
+//		
+//		br.close();
+//		tarInput.close();
 		// open .zip file
 		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
 //		ZipFile zipFile = new ZipFile(path);

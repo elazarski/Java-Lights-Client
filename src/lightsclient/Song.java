@@ -37,6 +37,11 @@ public class Song {
 		return input.get(index);
 	}
 	
+	// get all input parts
+	public ArrayList<Part> getAllInputParts() {
+		return input;
+	}
+	
 	// add output
 	public void addOutput(OutputPart o) {
 		output.add(o);

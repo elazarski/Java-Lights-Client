@@ -112,7 +112,7 @@ public class MainWindow {
 				fd.setText("Open");
 				
 				
-				String[] ext = {"*.tar.gz"};
+				String[] ext = {"*.tg"};
 				fd.setFilterExtensions(ext);
 				String selected = fd.open();
 				
