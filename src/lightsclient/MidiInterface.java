@@ -2,7 +2,6 @@ package lightsclient;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.SynchronousQueue;
 
 import javax.sound.midi.MidiDevice;
@@ -10,8 +9,6 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
-
-import lightsclient.MidiSelection;
 
 public class MidiInterface {
 	
@@ -162,7 +159,7 @@ public class MidiInterface {
 			// create MyReceiver objects for each required input
 			int numInput = s.numInput();
 			for (int j = 0; j < numInput; j++) {
-				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(new Part(j, s)));
+				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(i)));
 			}
 			
 			while (true) {}

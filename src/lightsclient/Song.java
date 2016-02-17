@@ -2,8 +2,6 @@ package lightsclient;
 
 import java.util.ArrayList;
 
-import javax.sound.midi.Sequence;
-
 public class Song {
 
 	private String title;
@@ -27,6 +25,25 @@ public class Song {
 		return title;
 	}
 	
+	// give parts what they need
+	// output times, measures, parts, etc
+	public void done() {
+		
+		// give parts measures, parts, and output times
+		for (Part p : input) {
+			p.addMeasures(measures);
+			p.addParts(parts);
+			
+			for (OutputPart op : output) {
+				long[] times = op.getTimes();
+				p.addOutputTimes(times);
+			}
+			
+			p.addMeasures(measures);
+			p.addParts(parts);
+		}
+	}
+	
 	// add input
 	public void addInput(Part p) {
 		input.add(p);
@@ -40,6 +57,11 @@ public class Song {
 	// get all input parts
 	public ArrayList<Part> getAllInputParts() {
 		return input;
+	}
+	
+	// get number of input parts
+	public int numInput() {
+		return input.size();
 	}
 	
 	// add output
@@ -62,8 +84,18 @@ public class Song {
 		return measures;
 	}
 	
+	// set measures
+	public void setMeasures(ArrayList<Long> m) {
+		measures = m;
+	}
+	
 	// get parts
 	public ArrayList<Long> getParts() {
 		return parts;
+	}
+	
+	// set parts
+	public void setParts(ArrayList<Long> p) {
+		parts = p;
 	}
 }

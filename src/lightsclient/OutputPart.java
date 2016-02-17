@@ -2,8 +2,6 @@ package lightsclient;
 
 import java.util.ArrayList;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 public class OutputPart {
 	
 	private int channel;

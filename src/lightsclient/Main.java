@@ -7,8 +7,6 @@ import java.util.regex.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
 
-import lightsclient.*;
-
 public class Main {
 
 	@SuppressWarnings("deprecation")

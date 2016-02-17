@@ -1,20 +1,17 @@
 package lightsclient;
 
 
-// import statements
-import lightsclient.Song;
-import lightsclient.Setlist;
-import javax.sound.midi.InvalidMidiDataException;
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
+
+import javax.sound.midi.InvalidMidiDataException;
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
@@ -32,294 +29,82 @@ public class MyReader {
 		fileSeparator = File.separatorChar;
 	}
 	
-	private String readString(int length, DataInputStream dataInputStream) {
-		try {
-			char[] chars = new char[length];
-			for (int i = 0; i < chars.length; i++) {
-				chars[i] = dataInputStream.readChar();
-			}
-			return String.copyValueOf(chars);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-	
-	private String readUnsignedByteString(DataInputStream dataInputStream) {
-		try {
-			return readString(dataInputStream.read() & 0xFF, dataInputStream);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		return null;
-	}
-	
-	// reads .zip file and returns Song object
+	// reads .tar.gz file and returns Song object
 	Song readSong(String path) throws IOException, InvalidMidiDataException {		
-		// initialize Song with title
-		DataInputStream dataInputStream = new DataInputStream(new FileInputStream(path));
-		String title = readUnsignedByteString(dataInputStream);
+		// initialize Song with title		
+		int lastIndexOf = path.lastIndexOf(fileSeparator) + 1;
+		String title = path.substring(lastIndexOf, path.length() - 7);	
+		
 		Song ret = new Song(title);
-		// read .tg file
 		
+		// code found at http://stackoverflow.com/questions/14402598/extract-a-tar-gz-file-in-java-jsp
+		TarArchiveInputStream tarInput = new TarArchiveInputStream(
+				new GZIPInputStream(new FileInputStream(path)));
 		
-//		int lastIndexOf = path.lastIndexOf(fileSeparator) + 1;
-//		String title = path.substring(lastIndexOf, path.length() - 4);	
-//		
-//		Song ret = new Song(title);
-//		
-//		// code found at http://stackoverflow.com/questions/14402598/extract-a-tar-gz-file-in-java-jsp
-//		TarArchiveInputStream tarInput = new TarArchiveInputStream(
-//				new GZIPInputStream(new FileInputStream(path)));
-//		
-//		BufferedReader br = null;
-//		TarArchiveEntry currentEntry;
-//		while ((currentEntry = tarInput.getNextTarEntry()) != null) {
-//			String fileName = currentEntry.getName();
-//			
-//			// read file into memory
-//			// code found at: http://www.leveluplunch.com/java/examples/read-file-into-string/
-//			StringBuffer fileContents = new StringBuffer();
-//			br = new BufferedReader(new InputStreamReader(tarInput));
-//			String line;
-//			while ((line = br.readLine()) != null) {
-//				if (!line.equals(null)) {
-//					fileContents.append(line);
-//					fileContents.append(System.getProperty("line.separator"));
-//				}
-//			}
-//			
-//			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
-//			if (fileName.contains("i")) {
-//				// get channel
-//				int channel = Integer.parseInt(fileName.substring(1));
-//				Part p = new Part(channel, lines);
-//				ret.addInput(p);
-//			} else if (fileName.contains("o")) {
-//				// get channel
-//				int channel = Integer.parseInt(fileName.substring(1));
-//				OutputPart o = new OutputPart(channel, lines);
-//				ret.addOutput(o);
-//				
-//				// give times to input parts
-//				for (Part p : ret.getAllInputParts()) {
-//					p.addOutputTimes(o.getTimes());
-//				}
-//			} else {
-//				// m or p
-//				if (fileName.equals("m")) {
-//					System.out.println(fileName);
-//					for (String line1 : lines) {
-//						System.out.println(line1);
-//					}
-//				} else {
-//					// p
-//				}
-//			}
-//		}
-//		
-//		br.close();
-//		tarInput.close();
-		// open .zip file
-		// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
-//		ZipFile zipFile = new ZipFile(path);
-//		Enumeration<? extends ZipEntry> entries = zipFile.entries();
-//		
-//		while (entries.hasMoreElements()) {
-//			ZipEntry entry = entries.nextElement();
-//			String name = entry.getName();
-//			
-//			if (name.startsWith("i")) {
-//				InputStream in = zipFile.getInputStream(entry);
-//				
-//				int c;
-//				int index = 0;
-//				long numTracks = 1;
-//				long deltaTime = 0;
-//				long trackLength = 0;
-//				boolean singleTrack = false;
-//				boolean multSync = false;
-//				boolean multASync = false;
-//				boolean inTrack = false;
-//				boolean fileHeader = false;
-//				boolean trackHeader = false;
-//				
-//				while ((c = in.read()) != -1) {
-//					
-//					// check index
-//					if (index == 9) {
-//						// file format, end of file header
-//						switch (c) {
-//						case 0:		// single track
-//							singleTrack = true;
-//							break;
-//						case 1:		// Multiple tracks, synchronous
-//							multSync = true;
-//							break;
-//						case 2:		// multiple tracks, asynchronous
-//							multASync = true;
-//							break;
-//						default:
-//							System.err.println("READING MIDI FILES INCORRECTLY");
-//						}
-//						
-//					} else if (index == 10 && !singleTrack) {
-//						// number of tracks in file
-//						int d = in.read();
-//						numTracks = c + d;
-//						index++;
-//					} else if (index == 12) {
-//						// number of delta-time ticks per quarter note
-//						int d = in.read();
-//						deltaTime = c + d;
-//						index++;
-//						fileHeader = true;
-//					} else if (!inTrack && index > 12) {
-//						// parse track header
-//						inTrack = true;
-//						for (int i = 0; i < 3; i++) {
-//							c = in.read();
-//							index++;
-//						}
-//						
-//						int d = in.read();
-//						index++;
-//						int e = in.read();
-//						index++;
-//						int f = in.read();
-//						index++;
-//						
-//						trackLength = c + d + e + f;
-//						trackHeader = true;
-//						inTrack = true;
-//						
-//					} else if (inTrack && trackHeader) {
-//						// read whole MIDI event
-//						
-//						// time
-//						long delta_time = c;
-//						while (c > 0x80) {
-//							c = in.read();
-//							delta_time += c;
-//							index++;
-//						}
-//						delta_time += c;
-//						
-//						c = in.read();
-//						index++;
-//						// c is beginning of MIDI signal, check for NOTE_ON
-//						if (c >= 0x90 && c <= 0xA0) {
-//							int command = c;
-//							c = in.read();
-//							index++;
-//							System.out.println(Integer.toHexString(command) + " at " + delta_time + ": " + c);
-//						}
-//						
-//					}
-//					
-//					index++;
-//				}
-//			}
-//		}
-//		zipFile.close();
-//			
-//			if (name.contains("xml")) {
-//				// input
-//				System.out.println(name);
-//				Sequence seq = MidiSystem.getSequence(f);
-//				Map m = MidiTools.sortMessagesByTick(seq);
-//				
-//				for (Object obj : m.keySet()) {
-//					Long tick = (Long)obj;
-//					
-//					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
-//					
-//					for (MidiMessage msg : messages) {
-//						if (msg instanceof ShortMessage) {
-//							ShortMessage sm = (ShortMessage)msg;
-//							
-//							if (sm.getCommand() == 0x90) {
-//								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
-//							}
-//						}
-//					}
-//					System.out.println();
-//				}			}
-		
-		
-		/*while (entries.hasMoreElements()) {
-			ZipEntry entry = entries.nextElement();
-			String name = entry.getName();
+		BufferedReader br = null;
+		TarArchiveEntry currentEntry;
+		while ((currentEntry = tarInput.getNextTarEntry()) != null) {
+			String fileName = currentEntry.getName();
 			
-			// check name of current file
-			if (name.startsWith("i")) {
-				// input
-				System.out.println(name);
-				Sequence seq = MidiSystem.getSequence(zipFile.getInputStream(entry));
-				Map m = MidiTools.sortMessagesByTick(seq);
-				
-				for (Object obj : m.keySet()) {
-					Long tick = (Long)obj;
-					
-					ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
-					
-					for (int i = 0; i < messages.size(); i++) {
-						MidiMessage msg = messages.get(i);
-						if (msg instanceof ShortMessage) {
-							ShortMessage sm = (ShortMessage)msg;
-							
-							if (sm.getCommand() == ShortMessage.NOTE_ON ) {
-								System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
-							}
-						}
-					}
-					System.out.println();
+			// read file into memory
+			// code found at: http://www.leveluplunch.com/java/examples/read-file-into-string/
+			StringBuffer fileContents = new StringBuffer();
+			br = new BufferedReader(new InputStreamReader(tarInput));
+			String line;
+			while ((line = br.readLine()) != null) {
+				if (!line.equals(null)) {
+					fileContents.append(line);
+					fileContents.append(System.getProperty("line.separator"));
 				}
-				
-			} else if (name.startsWith("o")) {
-				// output
-				
+			}
+			
+			String lines[] = fileContents.toString().split(System.getProperty("line.separator"));
+			if (fileName.contains("i")) {
+				// get channel
+				int channel = Integer.parseInt(fileName.substring(1));
+				Part p = new Part(channel, lines);
+				ret.addInput(p);
+			} else if (fileName.contains("o")) {
+				// get channel
+				int channel = Integer.parseInt(fileName.substring(1));
+				OutputPart o = new OutputPart(channel, lines);
+				ret.addOutput(o);
 			} else {
 				// m or p
-				// get times whether it be m or p
-			//
-				/*long tickLength = sequence.getTickLength();
-				ret.setTickLength(tickLength);
-				
-				// parse sequence, extracting the tick of each event
-				ArrayList<Long> ticks = new ArrayList<Long>();
-				for (Track track : sequence.getTracks()) {
-					for (int i = 0; i < track.size(); i++) {
-						MidiEvent event = track.get(i);
-						
-						// check if event is a note
-						MidiMessage message = event.getMessage();
-						if (message instanceof ShortMessage) {
-							ShortMessage sMessage = (ShortMessage)message;
-							
-							// check if note on here
-							if (sMessage.getCommand() == 0x90) {
-								ticks.add(event.getTick());								
-							}
+				if (fileName.equals("m")) {
+					// get times
+					ArrayList<Long> m = new ArrayList<Long>();
+					for (String mLine : lines) {
+						if (!mLine.equals("")) {
+							String[] elements = mLine.split(" ");
+							m.add(Long.parseLong(elements[0]));
 						}
 					}
-				}
-				
-				// check if m or p now
-				if (name.startsWith("p")) {
-					ret.addPartTimes(ticks);
+					
+					// add to song
+					ret.setMeasures(m);
 				} else {
-					ret.addMeasureTimes(ticks);
+					// p
+					
+					// get times
+					ArrayList<Long> p = new ArrayList<Long>();
+					for (String pLine : lines) {
+						if (!pLine.equals("")) {
+							String[] elements = pLine.split(" ");
+							p.add(Long.parseLong(elements[0]));
+						}
+					}
+					
+					// add to song
+					ret.setParts(p);
 				}
 			}
-		}*/
+		}
 		
-		// close file
-		//zipFile.close();
-		
-		// return song that we have built
+		br.close();
+		tarInput.close();
+			// return song that we have built
+		ret.done();
 		return ret;
 	}
 
@@ -358,3 +143,202 @@ public class MyReader {
 		return ret;
 	}
 }
+
+
+// open .zip file
+// code found at: http://stackoverflow.com/questions/15667125/read-content-from-files-which-are-inside-zip-file
+//ZipFile zipFile = new ZipFile(path);
+//Enumeration<? extends ZipEntry> entries = zipFile.entries();
+//
+//while (entries.hasMoreElements()) {
+//	ZipEntry entry = entries.nextElement();
+//	String name = entry.getName();
+//	
+//	if (name.startsWith("i")) {
+//		InputStream in = zipFile.getInputStream(entry);
+//		
+//		int c;
+//		int index = 0;
+//		long numTracks = 1;
+//		long deltaTime = 0;
+//		long trackLength = 0;
+//		boolean singleTrack = false;
+//		boolean multSync = false;
+//		boolean multASync = false;
+//		boolean inTrack = false;
+//		boolean fileHeader = false;
+//		boolean trackHeader = false;
+//		
+//		while ((c = in.read()) != -1) {
+//			
+//			// check index
+//			if (index == 9) {
+//				// file format, end of file header
+//				switch (c) {
+//				case 0:		// single track
+//					singleTrack = true;
+//					break;
+//				case 1:		// Multiple tracks, synchronous
+//					multSync = true;
+//					break;
+//				case 2:		// multiple tracks, asynchronous
+//					multASync = true;
+//					break;
+//				default:
+//					System.err.println("READING MIDI FILES INCORRECTLY");
+//				}
+//				
+//			} else if (index == 10 && !singleTrack) {
+//				// number of tracks in file
+//				int d = in.read();
+//				numTracks = c + d;
+//				index++;
+//			} else if (index == 12) {
+//				// number of delta-time ticks per quarter note
+//				int d = in.read();
+//				deltaTime = c + d;
+//				index++;
+//				fileHeader = true;
+//			} else if (!inTrack && index > 12) {
+//				// parse track header
+//				inTrack = true;
+//				for (int i = 0; i < 3; i++) {
+//					c = in.read();
+//					index++;
+//				}
+//				
+//				int d = in.read();
+//				index++;
+//				int e = in.read();
+//				index++;
+//				int f = in.read();
+//				index++;
+//				
+//				trackLength = c + d + e + f;
+//				trackHeader = true;
+//				inTrack = true;
+//				
+//			} else if (inTrack && trackHeader) {
+//				// read whole MIDI event
+//				
+//				// time
+//				long delta_time = c;
+//				while (c > 0x80) {
+//					c = in.read();
+//					delta_time += c;
+//					index++;
+//				}
+//				delta_time += c;
+//				
+//				c = in.read();
+//				index++;
+//				// c is beginning of MIDI signal, check for NOTE_ON
+//				if (c >= 0x90 && c <= 0xA0) {
+//					int command = c;
+//					c = in.read();
+//					index++;
+//					System.out.println(Integer.toHexString(command) + " at " + delta_time + ": " + c);
+//				}
+//				
+//			}
+//			
+//			index++;
+//		}
+//	}
+//}
+//zipFile.close();
+//	
+//	if (name.contains("xml")) {
+//		// input
+//		System.out.println(name);
+//		Sequence seq = MidiSystem.getSequence(f);
+//		Map m = MidiTools.sortMessagesByTick(seq);
+//		
+//		for (Object obj : m.keySet()) {
+//			Long tick = (Long)obj;
+//			
+//			ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
+//			
+//			for (MidiMessage msg : messages) {
+//				if (msg instanceof ShortMessage) {
+//					ShortMessage sm = (ShortMessage)msg;
+//					
+//					if (sm.getCommand() == 0x90) {
+//						System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
+//					}
+//				}
+//			}
+//			System.out.println();
+//		}			}
+
+
+/*while (entries.hasMoreElements()) {
+	ZipEntry entry = entries.nextElement();
+	String name = entry.getName();
+	
+	// check name of current file
+	if (name.startsWith("i")) {
+		// input
+		System.out.println(name);
+		Sequence seq = MidiSystem.getSequence(zipFile.getInputStream(entry));
+		Map m = MidiTools.sortMessagesByTick(seq);
+		
+		for (Object obj : m.keySet()) {
+			Long tick = (Long)obj;
+			
+			ArrayList<MidiMessage> messages = (ArrayList<MidiMessage>)m.get(tick);
+			
+			for (int i = 0; i < messages.size(); i++) {
+				MidiMessage msg = messages.get(i);
+				if (msg instanceof ShortMessage) {
+					ShortMessage sm = (ShortMessage)msg;
+					
+					if (sm.getCommand() == ShortMessage.NOTE_ON ) {
+						System.out.println("NOTE_ON: " + sm.getData1() + ", " + tick);
+					}
+				}
+			}
+			System.out.println();
+		}
+		
+	} else if (name.startsWith("o")) {
+		// output
+		
+	} else {
+		// m or p
+		// get times whether it be m or p
+	//
+		/*long tickLength = sequence.getTickLength();
+		ret.setTickLength(tickLength);
+		
+		// parse sequence, extracting the tick of each event
+		ArrayList<Long> ticks = new ArrayList<Long>();
+		for (Track track : sequence.getTracks()) {
+			for (int i = 0; i < track.size(); i++) {
+				MidiEvent event = track.get(i);
+				
+				// check if event is a note
+				MidiMessage message = event.getMessage();
+				if (message instanceof ShortMessage) {
+					ShortMessage sMessage = (ShortMessage)message;
+					
+					// check if note on here
+					if (sMessage.getCommand() == 0x90) {
+						ticks.add(event.getTick());								
+					}
+				}
+			}
+		}
+		
+		// check if m or p now
+		if (name.startsWith("p")) {
+			ret.addPartTimes(ticks);
+		} else {
+			ret.addMeasureTimes(ticks);
+		}
+	}
+}*/
+
+// close file
+//zipFile.close();
+

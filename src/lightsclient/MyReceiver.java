@@ -1,7 +1,5 @@
 package lightsclient;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.SynchronousQueue;
 
 import javax.sound.midi.MidiMessage;
@@ -12,7 +10,6 @@ public class MyReceiver implements Receiver {
 	
 	private SynchronousQueue<Byte[]> queue;
 	private Part part;
-	private Thread thread;
 
 	public static MyReceiver newInstance(Part p) {
 		MyReceiver ret = new MyReceiver();
