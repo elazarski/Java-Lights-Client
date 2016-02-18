@@ -62,19 +62,19 @@ public class Part {
 		// ask current event if this is the correct input
 		Event ev = notes.get(currentEvent);
 		
-		boolean[] ret = ev.contains(input);
+		boolean correct = ev.contains(input);
 		
 		// check for next MP if correct note
-		if (ret[0]) {
+		if (correct) {
 			nextMP(ev);
+			
+			// check isDone to see if we should increment currentNote
+			if (ev.isDone()) {
+				currentEvent++;
+			}
 		}
-		
-		// check isDone to see if we should increment currentNote
-		if (ret[1]) {
-			currentEvent++;
-		}
-		
-		return ret[0];
+
+		return correct;
 	}
 	
 	// check if we have changed measures or parts

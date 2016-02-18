@@ -159,7 +159,7 @@ public class MidiInterface {
 			// create MyReceiver objects for each required input
 			int numInput = s.numInput();
 			for (int j = 0; j < numInput; j++) {
-				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(i)));
+				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j)));
 			}
 			
 			while (true) {}
