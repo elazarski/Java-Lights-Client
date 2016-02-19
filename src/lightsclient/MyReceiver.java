@@ -8,16 +8,20 @@ import javax.sound.midi.ShortMessage;
 
 public class MyReceiver implements Receiver {
 	
-	private SynchronousQueue<Byte[]> queue;
+	private SynchronousQueue<Long> queue;
 	private Part part;
 
-	public static MyReceiver newInstance(Part p) {
+	public static MyReceiver newInstance(Part p, SynchronousQueue<Long> q) {
 		MyReceiver ret = new MyReceiver();
 		ret.setPart(p);
+		ret.setQueue(q);
 		
 		return ret;
 	}
 	
+	private void setQueue(SynchronousQueue<Long> q) {
+		queue = q;
+	}
 	
 	private void setPart(Part p) {
 		this.part = p;
@@ -41,8 +45,17 @@ public class MyReceiver implements Receiver {
 					System.out.println("Correct note!");
 				}
 			}
+			
+			// check if done
+			if (part.isDone()) {
+				sendData((long) -1);
+				System.out.println("SONG DONE: RECIEVER " + part.getChannel());
+			}
 		}
 	}
 	
+	private void sendData(Long data) {
+		queue.add(data);
+	}
 
 }

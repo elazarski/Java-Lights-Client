@@ -77,6 +77,15 @@ public class Part {
 		return correct;
 	}
 	
+	public boolean isDone() {
+		if (currentEvent == notes.size()) {
+			System.out.println("SONG DONE: " + channel);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
 	// check if we have changed measures or parts
 	private void nextMP(Event ev) {
 		// check measure first

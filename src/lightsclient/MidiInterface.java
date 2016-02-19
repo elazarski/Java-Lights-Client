@@ -156,13 +156,32 @@ public class MidiInterface {
 		//	queue.add(new byte[] {0x1});
 		//	queue.add(s.toString().getBytes());
 			
+			ArrayList<SynchronousQueue<Long>> playQueues = new ArrayList<SynchronousQueue<Long>>();
+			
 			// create MyReceiver objects for each required input
 			int numInput = s.numInput();
 			for (int j = 0; j < numInput; j++) {
-				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j)));
+				SynchronousQueue<Long> current = new SynchronousQueue<Long>();
+				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j), current));
+				
+				// append to playQueues
+				playQueues.add(current);
 			}
 			
-			while (true) {}
+			while (true) {
+
+				// check playQueues for done message
+				for (int j = 0; j < numInput; j++) {
+				
+					Long data = playQueues.get(j).poll();
+					if (data != null) {
+						if (parseMessage(data)) {
+							// song is done
+							System.out.println("Interface " + j);
+						}
+					}
+				}
+			}
 			
 		}
 		
@@ -170,6 +189,16 @@ public class MidiInterface {
 		for (int i = 0; i < inputDevices.size(); i++) {
 			inputDevices.get(i).close();
 		}
+	}
+	
+	// parse message from play queue
+	private boolean parseMessage(long data) {
+		if (data == -1) {
+			System.out.print("SONG DONE ");
+			return true;
+		}
+		
+		return false;
 	}
 	
 }
