@@ -2,6 +2,9 @@ package lightsclient;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 
 import javax.sound.midi.MidiDevice;
@@ -9,6 +12,8 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
+
+import org.eclipse.core.internal.databinding.property.value.SetSimpleValueObservableMap;
 
 public class MidiInterface {
 	
@@ -156,49 +161,75 @@ public class MidiInterface {
 		//	queue.add(new byte[] {0x1});
 		//	queue.add(s.toString().getBytes());
 			
-			ArrayList<SynchronousQueue<Long>> playQueues = new ArrayList<SynchronousQueue<Long>>();
+			LinkedBlockingQueue<PlayMessage> playQueue = new LinkedBlockingQueue<PlayMessage>();
 			
 			// create MyReceiver objects for each required input
 			int numInput = s.numInput();
+			boolean[] partsDone = new boolean[numInput];
+			Arrays.fill(partsDone, false);
 			for (int j = 0; j < numInput; j++) {
-				SynchronousQueue<Long> current = new SynchronousQueue<Long>();
-				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j), current));
-				
-				// append to playQueues
-				playQueues.add(current);
+				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j), playQueue));
 			}
 			
-			while (true) {
+			// play song
+			boolean songDone = false;
+			while (!songDone) {
 
-				// check playQueues for done message
-				for (int j = 0; j < numInput; j++) {
-				
-					Long data = playQueues.get(j).poll();
-					if (data != null) {
-						if (parseMessage(data)) {
-							// song is done
-							System.out.println("Interface " + j);
+				// check playQueue for messages
+				PlayMessage pm = null;
+				try {
+					pm = playQueue.take();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if (pm != null) {
+					boolean partDone = parseMessage(pm);
+					int channel = pm.getChannel();
+					
+					if (partDone) {
+						partsDone[channel] = partDone;
+					}
+					
+					// check if all parts are done
+					songDone = true;
+					for (boolean current : partsDone) {
+						// if current == false
+						if (!current) {
+							songDone = false;
 						}
 					}
 				}
+				
 			}
 			
 		}
 		
+		// TODO: Figure out why this is not working
 		// close devices
 		for (int i = 0; i < inputDevices.size(); i++) {
+			//inputTransmitters.get(i).getReceiver().close();
 			inputDevices.get(i).close();
 		}
 	}
 	
 	// parse message from play queue
-	private boolean parseMessage(long data) {
-		if (data == -1) {
-			System.out.print("SONG DONE ");
-			return true;
+	private boolean parseMessage(PlayMessage pm) {
+		boolean ret = false;
+		
+		switch (pm.getType()) {
+		case OUTPUT_READY:
+			System.out.println("TEST: " + pm.getChannel());
+			break;
+		case PART_DONE:
+			ret = true;
+			break;
+		default:
+			break;
 		}
 		
-		return false;
+		return ret;
+		
 	}
 	
 }

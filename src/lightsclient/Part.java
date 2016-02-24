@@ -92,8 +92,6 @@ public class Part {
 		// get time
 		long nextMeasure = measureTimes.get(currentMeasure);
 		if (ev.getTime() >= nextMeasure) {
-			System.out.println("NEXT MEASURE");
-			System.out.println(ev.getTime() + nextMeasure);
 			currentMeasure++;
 		}
 		
@@ -101,8 +99,6 @@ public class Part {
 		// get time
 		long nextPart = partTimes.get(currentPart);
 		if (ev.getTime() >= nextPart) {
-			System.out.print("NEXT PART");
-			System.out.println(ev.getTime() + nextMeasure);
 			currentPart++;
 		}
 	}
