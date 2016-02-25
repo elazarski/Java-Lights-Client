@@ -3,6 +3,7 @@ package lightsclient;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -36,89 +37,94 @@ public class Main {
 		// main loop
 		while (mainWindow.isAlive()) {
 			try {
-				byte[] command = windowQueue.take();
+				byte[] windowCommand = windowQueue.poll(100, TimeUnit.MILLISECONDS);
+				byte[] playCommand = playQueue.poll(100, TimeUnit.MILLISECONDS);
 				String path;
 				
-				// check command
-				switch (command[0]) {
-				case 0x0:
-					// exit
-					System.exit(0);
-					
-					
-				case 0x1:
-					// open song
-					// get byte[] after command[1]
-					path = new String(Arrays.copyOfRange(command, 1, command.length));
-					Song s = reader.readSong(path);
-					setlist.addSong(s);
-					
-					// update UI
-					windowQueue.put(s.toString().getBytes());
-					break;
-					
-					
-				case 0x2:
-					// open setlist
-					// get byte[] after command[1]
-					path = new String(Arrays.copyOfRange(command,  1,  command.length));
-					setlist = reader.readSetlist(path);
-					
-					// update UI
-					byte[] data = strToB(setlist.getSongTitles());
-					windowQueue.put(data);
-					break;
-					
-					
-				case 0x3:
-					// select MIDI devices
-					// send device names to window
-					byte[] inputNames = strToB(m.getInputNames());
-					windowQueue.put(inputNames);
-					byte[] outputNames = strToB(m.getOutputNames());
-					windowQueue.put(outputNames);
-					
-					// wait for device selection
-					byte[] selectionObj = windowQueue.take();
-					m.connect(selectionObj);
-					
-					break;
-					
-					
-				case 0x4:
-					// reorder setlist
-					// get byte[] after command[1]
-					String[] newOrder = new String(Arrays.copyOfRange(command,  1,  command.length)).split(Pattern.quote("|"));
-					
-					setlist.reorder(newOrder);
-					break;
-					
-				case 0x5:
-					// start button pressed
-					//m.play(setlist, playQueue);
-					final Setlist finalSetlist = setlist;
-					playThread = new Thread(new Runnable() {
+				// check windowCommand
+				if (windowCommand != null) {
+					switch (windowCommand[0]) {
+					case 0x0:
+						// exit
+						System.exit(0);
 						
-						@Override
-						public void run() {
-							m.play(finalSetlist, playQueue);
+						
+					case 0x1:
+						// open song
+						// get byte[] after command[1]
+						path = new String(Arrays.copyOfRange(windowCommand, 1, windowCommand.length));
+						Song s = reader.readSong(path);
+						setlist.addSong(s);
+						
+						// update UI
+						windowQueue.put(s.toString().getBytes());
+						break;
+						
+						
+					case 0x2:
+						// open setlist
+						// get byte[] after command[1]
+						path = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length));
+						setlist = reader.readSetlist(path);
+						
+						// update UI
+						byte[] data = strToB(setlist.getSongTitles());
+						windowQueue.put(data);
+						break;
+						
+						
+					case 0x3:
+						// select MIDI devices
+						// send device names to window
+						byte[] inputNames = strToB(m.getInputNames());
+						windowQueue.put(inputNames);
+						byte[] outputNames = strToB(m.getOutputNames());
+						windowQueue.put(outputNames);
+						
+						// wait for device selection
+						byte[] selectionObj = windowQueue.take();
+						if (m != null) {
+							m.connect(selectionObj);
 						}
-					});
-					playThread.setName("playThread");
-					playThread.start();
-					break;
-					
-					
-				case 0x6:
-					// stop button pressed
-					System.out.println("stop");
-					break;
-					
-					
-				default:
-					// not implemented yet
-					System.err.println(command[0] + " not implemented yet!");
-					break;
+						
+						break;
+						
+						
+					case 0x4:
+						// reorder setlist
+						// get byte[] after command[1]
+						String[] newOrder = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length)).split(Pattern.quote("|"));
+						
+						setlist.reorder(newOrder);
+						break;
+						
+					case 0x5:
+						// start button pressed
+						//m.play(setlist, playQueue);
+						final Setlist finalSetlist = setlist;
+						playThread = new Thread(new Runnable() {
+							
+							@Override
+							public void run() {
+								m.play(finalSetlist, playQueue);
+							}
+						});
+						playThread.setName("playThread");
+						playThread.start();
+						break;
+						
+						
+					case 0x6:
+						// stop button pressed
+						System.out.println("stop");
+						break;
+						
+						
+					default:
+						// not implemented yet
+						System.err.println(windowCommand[0] + " not implemented yet!");
+						break;
+					}
 				}
 //				if (command[0].equals("song")) {
 //					Song s = reader.readSong(command[1]);

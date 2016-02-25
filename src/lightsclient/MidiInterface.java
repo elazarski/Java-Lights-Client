@@ -84,7 +84,7 @@ public class MidiInterface {
 	public void connect(byte[] selectionObj) {
 		try {
 			MidiSelection selection = MidiSelection.deserialize(selectionObj);
-			
+	
 			// set sizes for MIDI I/O ArrayLists
 			int maxInputChannel = selection.getMaxInputChannel() + 1;
 			int maxOutputChannel = selection.getMaxOutputChannel();
@@ -93,11 +93,11 @@ public class MidiInterface {
 			outputDevices = new ArrayList<MidiDevice>(maxOutputChannel);
 			outputReceivers = new ArrayList<Receiver>(maxOutputChannel);
 			
-			for (int i = -1; i < maxInputChannel; i++) {
+			for (int i = 0; i < maxInputChannel; i++) {
 				inputDevices.add(null);
 				inputTransmitters.add(null);				
 			}
-			for (int i = -1; i < maxOutputChannel; i++) {
+			for (int i = 0; i < maxOutputChannel; i++) {
 				outputDevices.add(null);
 				outputReceivers.add(null);
 			}
@@ -110,7 +110,8 @@ public class MidiInterface {
 				String name = device.getDeviceInfo().getName().toString();
 				
 				// check for output port (available input)
-				if (device.getMaxTransmitters() != 0) {					
+				if (device.getMaxTransmitters() != 0) {				
+					
 					// get channel based upon name
 					int channel = selection.getInputChannel(name);
 					
@@ -118,6 +119,7 @@ public class MidiInterface {
 					if (channel >= 0) {
 						inputTransmitters.set(channel, device.getTransmitter());
 						inputDevices.set(channel, device);
+					
 					}
 				} else if (device.getMaxReceivers() != 0) { // input port (available output)
 					// get channel based upon name
@@ -125,15 +127,14 @@ public class MidiInterface {
 					
 					// connect if channel is >= 1
 					if (channel >= 0) {
-						outputReceivers.set(channel, device.getReceiver());
-						outputDevices.set(channel, device);
+						outputReceivers.set(channel - 1, device.getReceiver());
+						outputDevices.set(channel - 1, device);
 					}
 				}
 			}
 			
 			// connect to input and output devices
-			// TODO: REMOVE - 1 AND DEAL WITH CONTROL INPUT
-			for (int i = 0; i < inputDevices.size() - 1; i++) {
+			for (int i = 0; i < inputDevices.size(); i++) {
 				inputDevices.get(i).open();
 			}
 			for (int i = 0; i < outputDevices.size(); i++) {
@@ -158,8 +159,8 @@ public class MidiInterface {
 			Song s = setlist.getSong(i);
 			
 			// TODO: update main, which will update UI
-		//	queue.add(new byte[] {0x1});
-		//	queue.add(s.toString().getBytes());
+			queue.offer(new byte[] {0x1});
+			queue.offer(s.toString().getBytes());
 			
 			LinkedBlockingQueue<PlayMessage> playQueue = new LinkedBlockingQueue<PlayMessage>();
 			
@@ -200,16 +201,13 @@ public class MidiInterface {
 						}
 					}
 				}
-				
 			}
 			
-		}
-		
-		// TODO: Figure out why this is not working
-		// close devices
-		for (int i = 0; i < inputDevices.size(); i++) {
-			//inputTransmitters.get(i).getReceiver().close();
-			inputDevices.get(i).close();
+			// close each receiver
+			for (int j = 0; j < inputTransmitters.size(); j++) {
+				inputTransmitters.get(j).getReceiver().close();
+			}
+			
 		}
 	}
 	

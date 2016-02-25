@@ -79,12 +79,12 @@ public class SelectDevices extends Dialog {
 		}
 		
 		// decrease all channels by 1, MIDI starts at 0, but people read at 1
-		for (int i = 0; i < inputChannels.length; i++) {
-			inputChannels[i]--;
-		}
-		for (int i = 0; i < outputChannels.length; i++) {
-			outputChannels[i]--;
-		}
+//		for (int i = 0; i < inputChannels.length; i++) {
+//			inputChannels[i];
+//		}
+//		for (int i = 0; i < outputChannels.length; i++) {
+//			outputChannels[i]--;
+//		}
 		
 		MidiSelection ret = new MidiSelection(inputNames, inputChannels, outputNames, outputChannels);
 		return ret;
@@ -137,10 +137,18 @@ public class SelectDevices extends Dialog {
 				
 				// populate inputChannels and outputChannels
 				for (int i = 0; i < inputNames.length; i++) {
-					inputChannels[i] = inputSpinners.get(i).getSelection();
+					if (inputSpinners.get(i).isEnabled()) {
+						inputChannels[i] = inputSpinners.get(i).getSelection();
+					} else {
+						inputChannels[i] = -1;
+					}
 				}
 				for (int i = 0; i < outputNames.length; i++) {
-					outputChannels[i] = outputSpinners.get(i).getSelection();
+					if (outputSpinners.get(i).isEnabled()) {
+						outputChannels[i] = outputSpinners.get(i).getSelection();
+					} else {
+						outputChannels[i] = -1;
+					}
 				}
 				
 				// return to main window
@@ -155,12 +163,12 @@ public class SelectDevices extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				// set all channels to 0 so that none are connected
+				// set all channels to -1 so that none are connected
 				for (int i = 0; i < inputChannels.length; i++) {
-					inputChannels[i] = 0;
+					inputChannels[i] = -1;
 				}
 				for (int i = 0; i < outputChannels.length; i++) {
-					outputChannels[i] = 0;
+					outputChannels[i] = -1;
 				}
 				
 				shell.dispose();
@@ -200,7 +208,7 @@ public class SelectDevices extends Dialog {
 			// add to inputCombos
 			// when dialog closes, this will be used to get user selections
 			inputCombos.add(combo);
-			inputComboSelections[i] = 0;
+			inputComboSelections[i] = -1;
 			
 			// create channel label and spinner
 			Label channelLabel = new Label(compositeInput, SWT.NONE);
@@ -211,7 +219,7 @@ public class SelectDevices extends Dialog {
 			spinner.setMaximum(16);
 			
 			inputSpinners.add(spinner);
-			inputChannels[i] = 0;
+			inputChannels[i] = -1;
 			
 			// automatically "connect" if needed to make things easier
 			if (inputNames[i].contains("loopMIDI")) {
@@ -254,7 +262,7 @@ public class SelectDevices extends Dialog {
 			// add to outputSpinners
 			outputSpinners.add(spinner);
 			
-			outputChannels[i] = 0;
+			outputChannels[i] = -1;
 			
 			// automatically select
 			if (outputNames[i].contains("QLC")) {
