@@ -98,4 +98,9 @@ public class Song {
 	public void setParts(ArrayList<Long> p) {
 		parts = p;
 	}
+
+	public int numMIDIOutput() {
+		// -1 because the last is the output for the phone
+		return output.size() - 1;
+	}
 }

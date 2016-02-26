@@ -10,13 +10,13 @@ import javax.sound.midi.ShortMessage;
 
 import lightsclient.PlayMessage.Type;
 
-public class MyReceiver implements Receiver {
+public class InputReceiver implements Receiver {
 	
 	private Queue<PlayMessage> queue;
 	private Part part;
 
-	public static MyReceiver newInstance(Part p, LinkedBlockingQueue<PlayMessage> playQueue) {
-		MyReceiver ret = new MyReceiver();
+	public static InputReceiver newInstance(Part p, LinkedBlockingQueue<PlayMessage> playQueue) {
+		InputReceiver ret = new InputReceiver();
 		ret.setPart(p);
 		ret.setQueue(playQueue);
 		
@@ -46,7 +46,7 @@ public class MyReceiver implements Receiver {
 			
 			if (command == 0x90) {
 				if (part.isNext(sm.getData1())) {
-					sendData(new PlayMessage(part.getChannel(), Type.OUTPUT_READY));
+					sendData(new PlayMessage(part.getChannel(), Type.TIME_UPDATE));
 				}
 			}
 			

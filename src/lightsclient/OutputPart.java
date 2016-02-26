@@ -2,10 +2,13 @@ package lightsclient;
 
 import java.util.ArrayList;
 
+import javax.sound.midi.Receiver;
+
 public class OutputPart {
 	
 	private int channel;
 	private ArrayList<Event> notes;
+	private Receiver output;
 	
 	public OutputPart(int channel, String[] lines) {
 		this.channel = channel;
@@ -26,5 +29,19 @@ public class OutputPart {
 		}
 		
 		return ret;
+	}
+
+	/**
+	 * @return the output
+	 */
+	public Receiver getOutput() {
+		return output;
+	}
+
+	/**
+	 * @param output the output to set
+	 */
+	public void setOutput(Receiver output) {
+		this.output = output;
 	}
 }

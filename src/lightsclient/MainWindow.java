@@ -1,6 +1,7 @@
 package lightsclient;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.concurrent.SynchronousQueue;
 import java.util.regex.Pattern;
 
@@ -74,6 +75,19 @@ public class MainWindow {
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch()) {
 				display.sleep();
+			}
+			
+			// check queue
+			byte[] data = queue.poll();
+			System.out.println(data);
+			if (data != null) {
+				switch (data[0]) {
+				case 0x1:
+					// new song title
+					String title = new String(Arrays.copyOfRange(data, 1, data.length));
+					System.out.println(title);
+					songLabel.setText(title);
+				}
 			}
 		}
 	}

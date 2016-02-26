@@ -21,7 +21,7 @@ public class MidiInterface {
 	private ArrayList<MidiDevice> inputDevices;
 	private ArrayList<Transmitter> inputTransmitters;
 	private ArrayList<MidiDevice> outputDevices;
-	private ArrayList<Receiver> outputReceivers; 
+	private ArrayList<Receiver> outputReceivers;
 	
 	private SynchronousQueue<byte[]> queue;
 	
@@ -164,12 +164,18 @@ public class MidiInterface {
 			
 			LinkedBlockingQueue<PlayMessage> playQueue = new LinkedBlockingQueue<PlayMessage>();
 			
-			// create MyReceiver objects for each required input
+			// create InputReceiver objects for each required input
 			int numInput = s.numInput();
 			boolean[] partsDone = new boolean[numInput];
 			Arrays.fill(partsDone, false);
 			for (int j = 0; j < numInput; j++) {
-				inputTransmitters.get(j).setReceiver(MyReceiver.newInstance(s.getInput(j), playQueue));
+				inputTransmitters.get(j).setReceiver(InputReceiver.newInstance(s.getInput(j), playQueue));
+			}
+			
+			// connect each outputPart to a Receiver
+			int numMIDIOutput = s.numMIDIOutput();
+			for (int j = 0; j < numMIDIOutput; j++) {
+				s.getOutput(j).setOutput(outputReceivers.get(j));
 			}
 			
 			// play song
@@ -203,7 +209,7 @@ public class MidiInterface {
 				}
 			}
 			
-			// close each receiver
+			// close each receiver now that this song is done
 			for (int j = 0; j < inputTransmitters.size(); j++) {
 				inputTransmitters.get(j).getReceiver().close();
 			}
@@ -216,8 +222,10 @@ public class MidiInterface {
 		boolean ret = false;
 		
 		switch (pm.getType()) {
-		case OUTPUT_READY:
-			System.out.println("TEST: " + pm.getChannel());
+		case TIME_UPDATE:
+			
+			// check if tick is >= next output signal
+			
 			break;
 		case PART_DONE:
 			ret = true;

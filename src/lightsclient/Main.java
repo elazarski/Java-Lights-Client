@@ -126,6 +126,23 @@ public class Main {
 						break;
 					}
 				}
+				
+				// check playCommand
+				if (playCommand != null) {
+					switch (playCommand[0]) {
+					case 0x1:
+						// update UI with title of current song
+						byte[] title = Arrays.copyOfRange(playCommand, 1, playCommand.length);
+						byte[] data = new byte[title.length + 1];
+						data[0] = 0x1;
+						for (int i = 0; i < title.length; i++) {
+							data[i + 1] = title[i];
+						}
+						
+						windowQueue.offer(data);
+						
+					}
+				}
 //				if (command[0].equals("song")) {
 //					Song s = reader.readSong(command[1]);
 //					setlist.addSong(s);

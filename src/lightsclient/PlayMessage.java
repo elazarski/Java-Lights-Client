@@ -1,8 +1,8 @@
 package lightsclient;
 
 public class PlayMessage {
-	public static enum Type {
-		PART_DONE, OUTPUT_READY
+	static enum Type {
+		PART_DONE, TIME_UPDATE
 	}
 	
 	private int channel;
