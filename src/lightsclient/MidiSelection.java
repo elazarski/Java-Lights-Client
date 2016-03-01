@@ -1,10 +1,5 @@
 package lightsclient;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 public class MidiSelection implements Serializable {
@@ -112,17 +107,17 @@ public class MidiSelection implements Serializable {
 	}
 
 	// code found at: http://stackoverflow.com/questions/5837698/converting-any-object-to-a-byte-array-in-java
-	public static byte[] serialize(Object obj) throws IOException {
-		ByteArrayOutputStream b = new ByteArrayOutputStream();
-		ObjectOutputStream o = new ObjectOutputStream(b);
-		
-		o.writeObject(obj);
-		return b.toByteArray();
-	}
-	
-	public static MidiSelection deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
-		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
-		ObjectInputStream o = new ObjectInputStream(b);
-		return (MidiSelection) o.readObject();
-	}
+//	public static byte[] serialize(Object obj) throws IOException {
+//		ByteArrayOutputStream b = new ByteArrayOutputStream();
+//		ObjectOutputStream o = new ObjectOutputStream(b);
+//		
+//		o.writeObject(obj);
+//		return b.toByteArray();
+//	}
+//	
+//	public static MidiSelection deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
+//		ByteArrayInputStream b = new ByteArrayInputStream(bytes);
+//		ObjectInputStream o = new ObjectInputStream(b);
+//		return (MidiSelection) o.readObject();
+//	}
 }

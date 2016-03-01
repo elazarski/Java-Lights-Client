@@ -1,11 +1,9 @@
 package lightsclient;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiSystem;
@@ -13,7 +11,7 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
-import org.eclipse.core.internal.databinding.property.value.SetSimpleValueObservableMap;
+import lightsclient.MyMessage.Type;
 
 public class MidiInterface {
 	
@@ -23,7 +21,8 @@ public class MidiInterface {
 	private ArrayList<MidiDevice> outputDevices;
 	private ArrayList<Receiver> outputReceivers;
 	
-	private SynchronousQueue<byte[]> queue;
+	private LinkedBlockingQueue<MyMessage> inQueue;
+	private LinkedBlockingQueue<MyMessage> outQueue;
 	
 	public MidiInterface() {
 		infos = MidiSystem.getMidiDeviceInfo();
@@ -81,9 +80,9 @@ public class MidiInterface {
 		return ret;
 	}
 	
-	public void connect(byte[] selectionObj) {
+	public void connect(MidiSelection selection) {
 		try {
-			MidiSelection selection = MidiSelection.deserialize(selectionObj);
+			//MidiSelection selection = MidiSelection.deserialize(selectionObj);
 	
 			// set sizes for MIDI I/O ArrayLists
 			int maxInputChannel = selection.getMaxInputChannel() + 1;
@@ -141,28 +140,34 @@ public class MidiInterface {
 				outputDevices.get(i).open();
 			}
 			
-		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (MidiUnavailableException e) {
 			e.printStackTrace();
 		}
 		
 	}
 	
-	public void play(Setlist setlist, SynchronousQueue<byte[]> q) {
-		queue = q;
+	public void play(Setlist setlist, LinkedBlockingQueue<MyMessage> in, LinkedBlockingQueue<MyMessage> out) {
+		inQueue = in;
+		outQueue = out;
 	
 		// play songs
 		for (int i = 0; i < setlist.getNumSongs(); i++) {
 			Song s = setlist.getSong(i);
 			
-			// TODO: update main, which will update UI
-			queue.offer(new byte[] {0x1});
-			queue.offer(s.toString().getBytes());
+			// update main with current song title
+			MyMessage message = new MyMessage(Type.SONG_UPDATE, s.toString());
+			try {
+				outQueue.put(message);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			
-			LinkedBlockingQueue<PlayMessage> playQueue = new LinkedBlockingQueue<PlayMessage>();
+			// TODO: update main, which will update UI
+//			queue.offer(new byte[] {0x1});
+//			queue.offer(s.toString().getBytes());
+			
+			LinkedBlockingQueue<MyMessage> playQueue = new LinkedBlockingQueue<MyMessage>();
 			
 			// create InputReceiver objects for each required input
 			int numInput = s.numInput();
@@ -183,16 +188,20 @@ public class MidiInterface {
 			while (!songDone) {
 
 				// check playQueue for messages
-				PlayMessage pm = null;
+				MyMessage playMessage = null;
+				MyMessage mainMessage = null;
 				try {
-					pm = playQueue.take();
+					playMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
+					mainMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
+					System.out.println("here");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if (pm != null) {
-					boolean partDone = parseMessage(pm);
-					int channel = pm.getChannel();
+				
+				if (playMessage != null) {
+					boolean partDone = parseMessage(playMessage);
+					int channel = playMessage.getChannel();
 					
 					if (partDone) {
 						partsDone[channel] = partDone;
@@ -207,6 +216,16 @@ public class MidiInterface {
 						}
 					}
 				}
+				
+				// check for message from main
+				if (mainMessage != null) {
+					if (mainMessage.getType() == Type.SYSTEM_EXIT) {
+						//songDone = true;
+						
+						// exit while loop
+						break;
+					}
+				}
 			}
 			
 			// close each receiver now that this song is done
@@ -218,7 +237,7 @@ public class MidiInterface {
 	}
 	
 	// parse message from play queue
-	private boolean parseMessage(PlayMessage pm) {
+	private boolean parseMessage(MyMessage pm) {
 		boolean ret = false;
 		
 		switch (pm.getType()) {

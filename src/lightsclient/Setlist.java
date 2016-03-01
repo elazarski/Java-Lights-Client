@@ -47,14 +47,20 @@ public class Setlist {
 	
 	public String[] getSongTitles() {
 		
-		ArrayList<String> songNames = new ArrayList<String>();
-		
+		String[] ret = new String[songs.size()];
 		for (int i = 0; i < songs.size(); i++) {
-			songNames.add(songs.get(i).toString());
+			ret[i] = songs.get(i).toString();
 		}
 		
-		String[] ret = new String[songNames.size()];
-		ret = songNames.toArray(ret);
+//		ArrayList<String> songNames = new ArrayList<String>();
+//		
+//		for (int i = 0; i < songs.size(); i++) {
+//			songNames.add(songs.get(i).toString());
+//		}
+		
+//		String[] ret = new String[songNames.size()];
+//		ret = songNames.toArray(ret);
+		
 		return ret;
 	}
 	

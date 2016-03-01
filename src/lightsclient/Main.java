@@ -1,25 +1,27 @@
 package lightsclient;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 import javax.sound.midi.InvalidMidiDataException;
+
+import lightsclient.MyMessage.Type;
 
 public class Main {
 
 	@SuppressWarnings("deprecation")
 	public static void main(String[] args) {
+
 		
 		// create and start UI thread
-		SynchronousQueue<byte[]> windowQueue = new SynchronousQueue<>();
+		LinkedBlockingQueue<MyMessage> windowInQueue = new LinkedBlockingQueue<MyMessage>();
+		LinkedBlockingQueue<MyMessage> windowOutQueue = new LinkedBlockingQueue<MyMessage>();
 		Thread mainWindow = new Thread(new Runnable() {
 			
 			@Override
 			public void run() {
-				MainWindow.main(windowQueue);
+				MainWindow.main(windowInQueue, windowOutQueue);
 			}
 		});
 		mainWindow.setName("UI Thread");
@@ -31,74 +33,108 @@ public class Main {
 		MidiInterface m = new MidiInterface();
 		
 		// create playThread data, but do not start
-		Thread playThread;
-		SynchronousQueue<byte[]> playQueue = new SynchronousQueue<>();
+		Thread playThread = null;
+		LinkedBlockingQueue<MyMessage> playInQueue = new LinkedBlockingQueue<MyMessage>();
+		LinkedBlockingQueue<MyMessage> playOutQueue = new LinkedBlockingQueue<MyMessage>();
 		
 		// main loop
 		while (mainWindow.isAlive()) {
 			try {
-				byte[] windowCommand = windowQueue.poll(100, TimeUnit.MILLISECONDS);
-				byte[] playCommand = playQueue.poll(100, TimeUnit.MILLISECONDS);
-				String path;
+				MyMessage windowMessage = windowOutQueue.poll(10, TimeUnit.MILLISECONDS);
+				MyMessage playMessage = playOutQueue.poll(10, TimeUnit.MILLISECONDS);
+				MyMessage message;
+				//String path;
 				
 				// check windowCommand
-				if (windowCommand != null) {
-					switch (windowCommand[0]) {
-					case 0x0:
+				if (windowMessage != null) {
+					switch (windowMessage.getType()) {
+					case SYSTEM_EXIT:
 						// exit
+//						if (playThread != null) {
+//							playThread.stop();
+//						}
+						playInQueue.put(windowMessage);
 						System.exit(0);
 						
 						
-					case 0x1:
+					case READ_FILE:
+						// get path
+						String filePath = (String)windowMessage.getData1();
+						message = new MyMessage(null);
+						// check if song or setlist
+						if (windowMessage.getChannel() == 0) {					// song
+							Song s = reader.readSong(filePath);
+							setlist.addSong(s);
+							message.setData1(s.toString());
+						} else {												// setlist
+							setlist = reader.readSetlist(filePath);
+							message.setData1(setlist.getSongTitles());
+						}
 						// open song
 						// get byte[] after command[1]
-						path = new String(Arrays.copyOfRange(windowCommand, 1, windowCommand.length));
-						Song s = reader.readSong(path);
-						setlist.addSong(s);
+//						path = new String(Arrays.copyOfRange(windowCommand, 1, windowCommand.length));
+//						Song s = reader.readSong(path);
+//						setlist.addSong(s);
+//						
+//						// update UI
+//						windowQueue.put(s.toString().getBytes());
 						
 						// update UI
-						windowQueue.put(s.toString().getBytes());
+						windowInQueue.put(message);
 						break;
 						
 						
-					case 0x2:
-						// open setlist
-						// get byte[] after command[1]
-						path = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length));
-						setlist = reader.readSetlist(path);
+//					case 0x2:
+//						// open setlist
+//						// get byte[] after command[1]
+//						path = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length));
+//						setlist = reader.readSetlist(path);
+//						
+//						// update UI
+//						byte[] data = strToB(setlist.getSongTitles());
+//						windowQueue.put(data);
+//						break;
+//						
 						
-						// update UI
-						byte[] data = strToB(setlist.getSongTitles());
-						windowQueue.put(data);
-						break;
-						
-						
-					case 0x3:
+					case MIDI_SELECTION:
 						// select MIDI devices
 						// send device names to window
-						byte[] inputNames = strToB(m.getInputNames());
-						windowQueue.put(inputNames);
-						byte[] outputNames = strToB(m.getOutputNames());
-						windowQueue.put(outputNames);
+//						byte[] inputNames = strToB(m.getInputNames());
+//						windowQueue.put(inputNames);
+//						byte[] outputNames = strToB(m.getOutputNames());
+//						windowQueue.put(outputNames);
 						
 						// wait for device selection
-						byte[] selectionObj = windowQueue.take();
-						if (m != null) {
-							m.connect(selectionObj);
-						}
+//						byte[] selectionObj = windowQueue.take();
+//						if (m != null) {
+//							m.connect(selectionObj);
+//						}
 						
+						// get names of MIDI devices
+						String[] inputNames = m.getInputNames();
+						String[] outputNames = m.getOutputNames();
+						
+						// send names to UI
+						message = new MyMessage(Type.MIDI_SELECTION, inputNames, outputNames);
+						windowInQueue.put(message);
+						
+						// wait for device selection
+						message = windowOutQueue.take();
+						m.connect((MidiSelection)message.getData1());
 						break;
 						
 						
-					case 0x4:
+					case SETLIST_REORDER:
 						// reorder setlist
 						// get byte[] after command[1]
-						String[] newOrder = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length)).split(Pattern.quote("|"));
+//						String[] newOrder = new String(Arrays.copyOfRange(windowCommand,  1,  windowCommand.length)).split(Pattern.quote("|"));
 						
+						// get new order
+						String[] newOrder = (String[])windowMessage.getData1();
 						setlist.reorder(newOrder);
 						break;
 						
-					case 0x5:
+					case START:
 						// start button pressed
 						//m.play(setlist, playQueue);
 						final Setlist finalSetlist = setlist;
@@ -106,7 +142,7 @@ public class Main {
 							
 							@Override
 							public void run() {
-								m.play(finalSetlist, playQueue);
+								m.play(finalSetlist, playInQueue, playOutQueue);
 							}
 						});
 						playThread.setName("playThread");
@@ -114,7 +150,7 @@ public class Main {
 						break;
 						
 						
-					case 0x6:
+					case STOP:
 						// stop button pressed
 						System.out.println("stop");
 						break;
@@ -122,24 +158,32 @@ public class Main {
 						
 					default:
 						// not implemented yet
-						System.err.println(windowCommand[0] + " not implemented yet!");
+						System.err.println("COMMAND FROM WINDOW NOT IMPLEMENTED YET");
 						break;
 					}
 				}
 				
 				// check playCommand
-				if (playCommand != null) {
-					switch (playCommand[0]) {
-					case 0x1:
-						// update UI with title of current song
-						byte[] title = Arrays.copyOfRange(playCommand, 1, playCommand.length);
-						byte[] data = new byte[title.length + 1];
-						data[0] = 0x1;
-						for (int i = 0; i < title.length; i++) {
-							data[i + 1] = title[i];
-						}
+				if (playMessage != null) {
+					switch (playMessage.getType()) {
+					case SONG_UPDATE:
+//						// update UI with title of current song
+//						byte[] title = Arrays.copyOfRange(playCommand, 1, playCommand.length);
+//						byte[] data = new byte[title.length + 1];
+//						data[0] = 0x1;
+//						for (int i = 0; i < title.length; i++) {
+//							data[i + 1] = title[i];
+//						}
+//						
+//						windowQueue.offer(data);
 						
-						windowQueue.offer(data);
+						windowInQueue.put(playMessage);
+						break;
+						
+						
+					default:
+						System.err.println("COMMAND FROM PLAYTHREAD NOT IMPLEMENTED YET");
+						break;
 						
 					}
 				}
@@ -188,20 +232,20 @@ public class Main {
 	}
 	
 	// convert String[] to byte[]
-	private static byte[] strToB(String[] strings) {
-		String allStrings = new String();
-		for (int i = 0; i < strings.length; i++) {
-			allStrings = allStrings.concat(strings[i]);
-			allStrings = allStrings.concat("|");
-		}
-		
-		// remove last '|'
-		allStrings = allStrings.substring(0, allStrings.length() - 1);
-		
-		// convert allStrings to byte[]
-		byte[] ret = allStrings.getBytes();
-		
-		return ret;
-	}
+//	private static byte[] strToB(String[] strings) {
+//		String allStrings = new String();
+//		for (int i = 0; i < strings.length; i++) {
+//			allStrings = allStrings.concat(strings[i]);
+//			allStrings = allStrings.concat("|");
+//		}
+//		
+//		// remove last '|'
+//		allStrings = allStrings.substring(0, allStrings.length() - 1);
+//		
+//		// convert allStrings to byte[]
+//		byte[] ret = allStrings.getBytes();
+//		
+//		return ret;
+//	}
 
 }

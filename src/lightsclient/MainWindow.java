@@ -1,9 +1,7 @@
 package lightsclient;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.SynchronousQueue;
-import java.util.regex.Pattern;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -22,6 +20,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import lightsclient.MyMessage.Type;
+
 public class MainWindow {
 
 	protected Shell shell;
@@ -37,13 +37,15 @@ public class MainWindow {
 	 * Launch the application.
 	 * @param args
 	 */
-	static SynchronousQueue<byte[]> queue;
+	static LinkedBlockingQueue<MyMessage> inQueue;
+	static LinkedBlockingQueue<MyMessage> outQueue;
 	
 	/**
 	 * @wbp.parser.entryPoint
 	 */
-	public static void main(SynchronousQueue<byte[]> q)  {
-		queue = q;
+	public static void main(LinkedBlockingQueue<MyMessage> in, LinkedBlockingQueue<MyMessage> out)  {
+		inQueue = in;
+		outQueue = out;
 		
 		try {
 			MainWindow window = new MainWindow();
@@ -54,10 +56,9 @@ public class MainWindow {
 		}
 		
 		// notify main to exit
-		byte[] exit = new byte[1];
-		exit[0] = 0x0;
+		MyMessage exit = new MyMessage(Type.SYSTEM_EXIT);
 		try {
-			queue.put(exit);
+			outQueue.put(exit);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -78,17 +79,41 @@ public class MainWindow {
 			}
 			
 			// check queue
-			byte[] data = queue.poll();
-			System.out.println(data);
-			if (data != null) {
-				switch (data[0]) {
-				case 0x1:
-					// new song title
-					String title = new String(Arrays.copyOfRange(data, 1, data.length));
-					System.out.println(title);
-					songLabel.setText(title);
-				}
+			MyMessage message = null;
+			try {
+				message = inQueue.poll(10, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			if (message != null) {
+				// get type
+				switch (message.getType()) {
+				case SONG_UPDATE:
+					String title = (String)message.getData1();
+					songLabel.setText(title);
+					break;
+				case SYSTEM_EXIT:
+					System.err.println("RECEIVED EXIT SIGNAL");
+					shell.dispose();
+					break;
+				default:
+					System.err.println("WRONG TYPE OF MESSAGE RECEIVED IN WINDOW THREAD");
+					break;
+				}
+				
+			}
+//			byte[] data = queue.poll();
+//			System.out.println(data);
+//			if (data != null) {
+//				switch (data[0]) {
+//				case 0x1:
+//					// new song title
+//					String title = new String(Arrays.copyOfRange(data, 1, data.length));
+//					System.out.println(title);
+//					songLabel.setText(title);
+//				}
+//			}
 		}
 	}
 
@@ -130,21 +155,31 @@ public class MainWindow {
 				if (selected == null) {
 					return;
 				}
-				byte[] filePath = selected.getBytes();
-				byte[] send = new byte[filePath.length + 1];
-				send[0] = 0x1;
-				for (int i = 0; i < filePath.length; i++) {
-					send[i + 1] = filePath[i];
-				}
 				
-				// send data to main thread
-				if (selected != null) {
-					sendData(send);
-					
-					// update UI
-					String song = new String(getData());
-					setlistList.add(song);
-				}
+				// update main
+				MyMessage message = new MyMessage(0, Type.READ_FILE, selected);
+				sendData(message);
+				
+				// update UI
+				message = getData();
+				String song = (String)message.getData1();
+				setlistList.add(song);
+//				
+//				byte[] filePath = selected.getBytes();
+//				byte[] send = new byte[filePath.length + 1];
+//				send[0] = 0x1;
+//				for (int i = 0; i < filePath.length; i++) {
+//					send[i + 1] = filePath[i];
+//				}
+//				
+//				// send data to main thread
+//				if (selected != null) {
+//					sendData(send);
+//					
+//					// update UI
+//					String song = new String(getData());
+//					setlistList.add(song);
+//				}
 				
 				// enable start button
 				setlistReady = true;
@@ -168,22 +203,31 @@ public class MainWindow {
 				fd.setFilterExtensions(filterExt);
 				String selected = fd.open();
 				
-				// construct String[] to send to main thread
+				// construct MyMessage to send to main thread
 				if (selected == null) {
 					return;
 				}
-				byte[] filePath = selected.getBytes();
-				byte[] send = new byte[selected.length() + 1];
-				send[0] = 0x2;
-				for (int i = 0; i < filePath.length; i++) {
-					send[i + 1] = filePath[i];
-				}
 				
-				// send data to main thread
-				sendData(send);
+				// send to main
+				MyMessage message = new MyMessage(1, Type.READ_FILE, selected);
+				sendData(message);
 				
-				// get data to populate setlistList
-				String[] names = new String(getData()).split(Pattern.quote("|"));
+				// update UI
+				message = getData();
+				String[] names = (String[])message.getData1();
+				
+//				byte[] filePath = selected.getBytes();
+//				byte[] send = new byte[selected.length() + 1];
+//				send[0] = 0x2;
+//				for (int i = 0; i < filePath.length; i++) {
+//					send[i + 1] = filePath[i];
+//				}
+//				
+//				// send data to main thread
+//				sendData(send);
+//				
+//				// get data to populate setlistList
+//				String[] names = new String(getData()).split(Pattern.quote("|"));
 				setlistList.setItems(names);
 				
 				// activate start button
@@ -201,26 +245,40 @@ public class MainWindow {
 			public void widgetSelected(SelectionEvent e) {
 				
 				// tell main to get the names of available input devices
-				byte[] data = new byte[1];
-				data[0] = 0x3;
-				sendData(data);
+//				byte[] data = new byte[1];
+//				data[0] = 0x3;
+//				sendData(data);
+//				
+//				// wait for names to come back
+//				String[] inputNames = new String(getData()).split(Pattern.quote("|"));
+//				String[] outputNames = new String(getData()).split(Pattern.quote("|"));
 				
-				// wait for names to come back
-				String[] inputNames = new String(getData()).split(Pattern.quote("|"));
-				String[] outputNames = new String(getData()).split(Pattern.quote("|"));
+				// get names of devices from main
+				MyMessage message = new MyMessage(0, Type.MIDI_SELECTION);
+				sendData(message);
+				
+				// get message from main
+				message = getData();
+				
+				// create MIDI Selection dialogue
+				String[] inputNames = (String[])message.getData1();
+				String[] outputNames = (String[])message.getData2();
 				SelectDevices s = new SelectDevices(new Shell(), SWT.APPLICATION_MODAL, inputNames, outputNames);
 				MidiSelection selected = s.open();
 				
 				// send data to main
-				try {
-					queue.put(MidiSelection.serialize(selected));
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				message = new MyMessage(1, Type.MIDI_SELECTION, selected);
+				sendData(message);
+				
+//				try {
+//					queue.put(MidiSelection.serialize(selected));
+//				} catch (InterruptedException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//				}
 				midiReady = true;
 				
 				if (setlistReady && midiReady) {
@@ -285,16 +343,20 @@ public class MainWindow {
 				setlistList.setItems(songs);
 				
 				// update main thread
-				byte[] allSongs = strToB(songs);
+//				byte[] allSongs = strToB(songs);
+//				
+//				// create byte[] to send to main
+//				byte[] data = new byte[allSongs.length + 1];
+//				data[0] = 0x4;
+//				for (int i = 0; i < allSongs.length; i++) {
+//					data[i + 1] = allSongs[i];
+//				}
+//				
+//				sendData(data);
 				
-				// create byte[] to send to main
-				byte[] data = new byte[allSongs.length + 1];
-				data[0] = 0x4;
-				for (int i = 0; i < allSongs.length; i++) {
-					data[i + 1] = allSongs[i];
-				}
-				
-				sendData(data);
+				// update main thread
+				MyMessage message = new MyMessage(Type.SETLIST_REORDER, songs);
+				sendData(message);
 			}
 		});
 		btnUpButton.setEnabled(false);
@@ -307,8 +369,12 @@ public class MainWindow {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				byte[] data = new byte[] {0x5};
-				sendData(data);
+				// update main
+				MyMessage message = new MyMessage(Type.START);
+				sendData(message);
+				
+//				byte[] data = new byte[] {0x5};
+//				sendData(data);
 				
 				btnStart.setEnabled(false);
 				btnStop.setEnabled(true);
@@ -329,8 +395,12 @@ public class MainWindow {
 			
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
-				byte[] data = new byte[] {0x6};
-				sendData(data);
+				// update main
+				MyMessage message = new MyMessage(Type.STOP);
+				sendData(message);
+				
+//				byte[] data = new byte[] {0x6};
+//				sendData(data);
 				
 				btnStart.setEnabled(true);
 				btnStop.setEnabled(false);
@@ -357,6 +427,7 @@ public class MainWindow {
 				if (selectedSong == songs.length - 1) {
 					return;
 				}
+				
 				String selected = songs[selectedSong];
 				String moved = songs[selectedSong + 1];
 				
@@ -367,16 +438,20 @@ public class MainWindow {
 				setlistList.setItems(songs);
 				
 				// update main thread
-				byte[] allSongs = strToB(songs);
+//				byte[] allSongs = strToB(songs);
+//				
+//				byte[] data = new byte[allSongs.length + 1];
+//				data[0] = 0x4;
+//				
+//				for (int i = 0; i < allSongs.length; i++) {
+//					data[i + 1] = allSongs[i];
+//				}
+//				
+//				sendData(data);
 				
-				byte[] data = new byte[allSongs.length + 1];
-				data[0] = 0x4;
-				
-				for (int i = 0; i < allSongs.length; i++) {
-					data[i + 1] = allSongs[i];
-				}
-				
-				sendData(data);
+				// update main
+				MyMessage message = new MyMessage(Type.SETLIST_REORDER, songs);
+				sendData(message);
 			}
 		});
 		btnDownButton.setEnabled(false);
@@ -387,20 +462,20 @@ public class MainWindow {
 	}
 	
 	// sends data to main thread
-	private void sendData(byte[] data) {
+	private void sendData(MyMessage message) {
 		try {
-			queue.put(data);
+			outQueue.put(message);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.exit(1);
+			//System.exit(1);
 		}
 	
 	}
 	
-	private byte[] getData() {
+	private MyMessage getData() {
 		try {
-			return queue.take();
+			return inQueue.take();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -409,19 +484,19 @@ public class MainWindow {
 	}
 	
 	// convert String[] to byte[]
-	private byte[] strToB(String[] strings) {
-		String allStrings = new String();
-		for (int i = 0; i < strings.length; i++) {
-			allStrings = allStrings.concat(strings[i]);
-			allStrings = allStrings.concat("|");
-		}
-		
-		// remove last '|'
-		allStrings = allStrings.substring(0, allStrings.length() - 1);
-		
-		// convert allStrings to byte[]
-		byte[] ret = allStrings.getBytes();
-		
-		return ret;
-	}
+//	private byte[] strToB(String[] strings) {
+//		String allStrings = new String();
+//		for (int i = 0; i < strings.length; i++) {
+//			allStrings = allStrings.concat(strings[i]);
+//			allStrings = allStrings.concat("|");
+//		}
+//		
+//		// remove last '|'
+//		allStrings = allStrings.substring(0, allStrings.length() - 1);
+//		
+//		// convert allStrings to byte[]
+//		byte[] ret = allStrings.getBytes();
+//		
+//		return ret;
+//	}
 }

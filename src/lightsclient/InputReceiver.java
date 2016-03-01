@@ -2,20 +2,19 @@ package lightsclient;
 
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
-import lightsclient.PlayMessage.Type;
+import lightsclient.MyMessage.Type;
 
 public class InputReceiver implements Receiver {
 	
-	private Queue<PlayMessage> queue;
+	private Queue<MyMessage> queue;
 	private Part part;
 
-	public static InputReceiver newInstance(Part p, LinkedBlockingQueue<PlayMessage> playQueue) {
+	public static InputReceiver newInstance(Part p, LinkedBlockingQueue<MyMessage> playQueue) {
 		InputReceiver ret = new InputReceiver();
 		ret.setPart(p);
 		ret.setQueue(playQueue);
@@ -23,7 +22,7 @@ public class InputReceiver implements Receiver {
 		return ret;
 	}
 	
-	private void setQueue(LinkedBlockingQueue<PlayMessage> playQueue) {
+	private void setQueue(LinkedBlockingQueue<MyMessage> playQueue) {
 		queue = playQueue;
 	}
 	
@@ -46,19 +45,19 @@ public class InputReceiver implements Receiver {
 			
 			if (command == 0x90) {
 				if (part.isNext(sm.getData1())) {
-					sendData(new PlayMessage(part.getChannel(), Type.TIME_UPDATE));
+					sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE));
 				}
 			}
 			
 			// check if done
 			if (part.isDone()) {
-				sendData(new PlayMessage(part.getChannel(), Type.PART_DONE));
+				sendData(new MyMessage(part.getChannel(), Type.PART_DONE));
 				System.out.println("SONG DONE: RECIEVER " + part.getChannel());
 			}
 		}
 	}
 	
-	private void sendData(PlayMessage data) {
+	private void sendData(MyMessage data) {
 		boolean x = queue.offer(data);
 		System.out.println(x);
 	}
