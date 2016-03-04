@@ -18,6 +18,10 @@ public class MidiInterface {
 	private MidiDevice.Info[] infos;
 	private ArrayList<MidiDevice> inputDevices;
 	private ArrayList<Transmitter> inputTransmitters;
+	private ArrayList<InputReceiver> inputReceivers;
+	private Transmitter controlTransmitter;
+	private MidiDevice controlDevice;
+	private ControlReceiver controlReceiver;
 	private ArrayList<MidiDevice> outputDevices;
 	private ArrayList<Receiver> outputReceivers;
 	
@@ -85,7 +89,7 @@ public class MidiInterface {
 			//MidiSelection selection = MidiSelection.deserialize(selectionObj);
 	
 			// set sizes for MIDI I/O ArrayLists
-			int maxInputChannel = selection.getMaxInputChannel() + 1;
+			int maxInputChannel = selection.getMaxInputChannel();
 			int maxOutputChannel = selection.getMaxOutputChannel();
 			inputDevices = new ArrayList<MidiDevice>(maxInputChannel);
 			inputTransmitters = new ArrayList<Transmitter>(maxInputChannel);
@@ -94,12 +98,15 @@ public class MidiInterface {
 			
 			for (int i = 0; i < maxInputChannel; i++) {
 				inputDevices.add(null);
-				inputTransmitters.add(null);				
+				inputTransmitters.add(null);		
+				inputReceivers.add(null);
 			}
 			for (int i = 0; i < maxOutputChannel; i++) {
 				outputDevices.add(null);
 				outputReceivers.add(null);
 			}
+			
+			controlDevice = null;
 			
 			// attempt to connect based upon name
 			for (int i = 0; i < infos.length; i++) {
@@ -115,10 +122,13 @@ public class MidiInterface {
 					int channel = selection.getInputChannel(name);
 					
 					// connect if channel is >= 0
-					if (channel >= 0) {
-						inputTransmitters.set(channel, device.getTransmitter());
-						inputDevices.set(channel, device);
+					if (channel > 0) {
+						inputTransmitters.set(channel - 1, device.getTransmitter());
+						inputDevices.set(channel - 1, device);
 					
+					} else if (channel == 0) { // control input
+						controlTransmitter = device.getTransmitter();
+						controlDevice = device;
 					}
 				} else if (device.getMaxReceivers() != 0) { // input port (available output)
 					// get channel based upon name
@@ -133,11 +143,27 @@ public class MidiInterface {
 			}
 			
 			// connect to input and output devices
-			for (int i = 0; i < inputDevices.size(); i++) {
-				inputDevices.get(i).open();
+			for (MidiDevice current : inputDevices) {
+				if (current != null) {
+					current.open();
+				}
 			}
-			for (int i = 0; i < outputDevices.size(); i++) {
-				outputDevices.get(i).open();
+			
+			for (MidiDevice current : outputDevices) {
+				if (current != null) {
+					current.open();
+				}
+			}
+//			for (int i = 0; i < inputDevices.size(); i++) {
+//				inputDevices.get(i).open();
+//			}
+//			for (int i = 0; i < outputDevices.size(); i++) {
+//				outputDevices.get(i).open();
+//			}
+			
+			// connect to control device
+			if (controlDevice != null) {
+				controlDevice.open();
 			}
 			
 		} catch (MidiUnavailableException e) {
@@ -149,6 +175,11 @@ public class MidiInterface {
 	public void play(Setlist setlist, LinkedBlockingQueue<MyMessage> in, LinkedBlockingQueue<MyMessage> out) {
 		inQueue = in;
 		outQueue = out;
+		
+		// connect to control receiver
+		LinkedBlockingQueue<MyMessage> controlQueue = new LinkedBlockingQueue<MyMessage>();
+		controlReceiver = ControlReceiver.newInstance(controlQueue);
+		controlTransmitter.setReceiver(controlReceiver);
 	
 		// play songs
 		for (int i = 0; i < setlist.getNumSongs(); i++) {
@@ -174,7 +205,9 @@ public class MidiInterface {
 			boolean[] partsDone = new boolean[numInput];
 			Arrays.fill(partsDone, false);
 			for (int j = 0; j < numInput; j++) {
-				inputTransmitters.get(j).setReceiver(InputReceiver.newInstance(s.getInput(j), playQueue));
+				InputReceiver recv = InputReceiver.newInstance(s.getInput(j), playQueue);
+				inputTransmitters.get(j).setReceiver(recv);
+				inputReceivers.set(j, recv);
 			}
 			
 			// connect each outputPart to a Receiver
@@ -190,9 +223,12 @@ public class MidiInterface {
 				// check playQueue for messages
 				MyMessage playMessage = null;
 				MyMessage mainMessage = null;
+				MyMessage controlMessage = null;
+				
 				try {
 					playMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
-					mainMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
+					mainMessage = inQueue.poll(1, TimeUnit.MICROSECONDS);
+					controlMessage = controlQueue.poll(1, TimeUnit.MICROSECONDS);
 					System.out.println("here");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -220,10 +256,22 @@ public class MidiInterface {
 				// check for message from main
 				if (mainMessage != null) {
 					if (mainMessage.getType() == Type.SYSTEM_EXIT) {
-						//songDone = true;
+						songDone = true;
 						
 						// exit while loop
 						break;
+					}
+				}
+				
+				// check for control message
+				if (controlMessage != null) {
+					// should only get time updates, but check to be safe for now
+					if (controlMessage.getType() == Type.TIME_UPDATE) {
+						
+						// update InputReceivers
+						for (InputReceiver current : inputReceivers) {
+							current.notify(controlMessage);
+						}
 					}
 				}
 			}

@@ -102,6 +102,14 @@ public class Part {
 			currentPart++;
 		}
 	}
+	
+	public void nextPart() {
+		
+	}
+	
+	public void nextMeasure() {
+		long nextMeasure = measureTimes.get(currentMeasure);
+	}
 }
 
 

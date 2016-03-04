@@ -2,7 +2,15 @@ package lightsclient;
 
 public class MyMessage {
 	static enum Type {
-		PART_DONE, TIME_UPDATE, SYSTEM_EXIT, SONG_UPDATE, READ_FILE, MIDI_SELECTION, SETLIST_REORDER, START, STOP
+		PART_DONE,
+		TIME_UPDATE,
+		SYSTEM_EXIT,
+		SONG_UPDATE,
+		READ_FILE,
+		MIDI_SELECTION,
+		SETLIST_REORDER,
+		START,
+		STOP
 	}
 	
 	private int channel = 0;

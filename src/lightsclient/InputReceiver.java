@@ -1,6 +1,5 @@
 package lightsclient;
 
-import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.sound.midi.MidiMessage;
@@ -11,7 +10,7 @@ import lightsclient.MyMessage.Type;
 
 public class InputReceiver implements Receiver {
 	
-	private Queue<MyMessage> queue;
+	private LinkedBlockingQueue<MyMessage> queue;
 	private Part part;
 
 	public static InputReceiver newInstance(Part p, LinkedBlockingQueue<MyMessage> playQueue) {
@@ -60,6 +59,23 @@ public class InputReceiver implements Receiver {
 	private void sendData(MyMessage data) {
 		boolean x = queue.offer(data);
 		System.out.println(x);
+	}
+	
+	// notify with MyMessage
+	public void notify(MyMessage message) {
+		System.out.println(Thread.currentThread().getName());
+		
+		// parse message
+		int channel = message.getChannel();
+		if (channel == 1) {						// next part
+			
+		} else if (channel == 2) {				// next measure
+			
+		} else if (channel == -1) {				// previous part
+			
+		} else if (channel == -2) {				// previous measure
+			
+		}
 	}
 
 }
