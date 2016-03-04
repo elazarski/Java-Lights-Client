@@ -90,25 +90,75 @@ public class Part {
 	private void nextMP(Event ev) {
 		// check measure first
 		// get time
-		long nextMeasure = measureTimes.get(currentMeasure);
+		long nextMeasure = measureTimes.get(currentMeasure + 1);
 		if (ev.getTime() >= nextMeasure) {
 			currentMeasure++;
 		}
 		
 		// check parts next
 		// get time
-		long nextPart = partTimes.get(currentPart);
+		long nextPart = partTimes.get(currentPart + 1);
 		if (ev.getTime() >= nextPart) {
 			currentPart++;
 		}
 	}
 	
 	public void nextPart() {
+		currentPart++;
+		long partTime = partTimes.get(currentPart);
 		
+		// get to next measure
+		boolean found = false;
+		int newMeasure = currentMeasure;
+		System.out.println("OLD MEASURE: " + currentMeasure);
+		while (!found) {
+			long time = measureTimes.get(newMeasure);
+			if (time >= partTime) {
+				currentMeasure = newMeasure;
+				found = true;
+				System.out.println("NEW MEASURE: " + currentMeasure);
+			} else {
+				newMeasure++;
+			}
+		}
+		
+		// find new event
+		found = false;
+		int newEvent = currentEvent;
+		System.out.println("OLD NOTE: " + currentEvent);
+		while (!found) {
+			long time = notes.get(newEvent).getTime();
+			if (time >= partTime) {
+				currentEvent = newEvent;
+				found = true;
+				System.out.println("NEW NOTE: " + currentEvent);
+			} else {
+				newEvent++;
+			}
+		}
 	}
 	
 	public void nextMeasure() {
-		long nextMeasure = measureTimes.get(currentMeasure);
+		currentMeasure++;
+		long measureTime = measureTimes.get(currentMeasure);
+		
+		// check for part update
+		if (measureTime >= partTimes.get(currentPart)) {
+			currentPart++;
+		}
+		
+		// find next event
+		boolean found = false;
+		int newEvent = currentEvent;
+		while (!found) {
+			long time = notes.get(newEvent).getTime();
+			if (time >= measureTime) {
+				currentEvent = newEvent;
+				found = true;
+			} else {
+				newEvent++;
+			}
+		}
 	}
 }
 

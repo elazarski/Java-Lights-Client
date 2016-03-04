@@ -33,6 +33,7 @@ public class MidiInterface {
 		
 		inputDevices = new ArrayList<MidiDevice>();
 		inputTransmitters = new ArrayList<Transmitter>();
+		inputReceivers = new ArrayList<InputReceiver>();
 		outputDevices = new ArrayList<MidiDevice>();
 		outputReceivers = new ArrayList<Receiver>();
 	}
