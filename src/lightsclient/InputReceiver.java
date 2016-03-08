@@ -42,7 +42,7 @@ public class InputReceiver implements Receiver {
 			ShortMessage sm = (ShortMessage)message;
 			int command = sm.getCommand();
 			
-			if (command == 0x90) {
+			if (command == ShortMessage.NOTE_ON) {
 				if (part.isNext(sm.getData1())) {
 					sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE));
 				}

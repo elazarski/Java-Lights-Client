@@ -90,25 +90,92 @@ public class Part {
 	private void nextMP(Event ev) {
 		// check measure first
 		// get time
-		long nextMeasure = measureTimes.get(currentMeasure);
+		long nextMeasure = measureTimes.get(currentMeasure + 1);
 		if (ev.getTime() >= nextMeasure) {
 			currentMeasure++;
 		}
 		
 		// check parts next
 		// get time
-		long nextPart = partTimes.get(currentPart);
+		long nextPart = partTimes.get(currentPart + 1);
 		if (ev.getTime() >= nextPart) {
 			currentPart++;
 		}
 	}
 	
 	public void nextPart() {
+		currentPart++;
 		
+		// find new currentNote and currentMeasure
+		long partTIme = partTimes.get(currentPart);
+		
+		// measures first
+		while (measureTimes.get(currentMeasure) < partTIme) {
+			currentMeasure++;
+		}
+		
+		// note
+		while (notes.get(currentEvent).getTime() < partTIme) {
+			currentEvent++;
+		}
 	}
 	
 	public void nextMeasure() {
-		long nextMeasure = measureTimes.get(currentMeasure);
+		currentMeasure++;
+		
+		// find new currentNote and currentPart
+		long measureTime = measureTimes.get(currentMeasure);
+		
+		// part first
+		// check if we even have to move
+		long nextPart = partTimes.get(currentPart + 1);
+		if (nextPart <= measureTime) {
+			while (partTimes.get(currentPart) < measureTime) {
+				currentPart++;
+			}
+		}
+		
+		// new note
+		while (notes.get(currentEvent).getTime() < measureTime) {
+			currentEvent++;
+		}
+	}
+	
+	public void previousPart() {
+		currentPart--;
+		
+		// find new currentNote and currentMeasure
+		long partTime = partTimes.get(currentPart);
+		
+		// measures first
+		while (measureTimes.get(currentMeasure - 1) > partTime) {
+			currentMeasure--;
+		}
+		
+		// new note
+		while (notes.get(currentEvent - 1).getTime() > partTime) {
+			currentEvent--;
+		}
+	}
+	
+	public void previousMeasure() {
+		currentMeasure--;
+		
+		// find new currentNote and currentPart
+		long measureTime = measureTimes.get(currentMeasure);
+		
+		// check if even necessary for part
+		if (partTimes.get(currentPart - 1) > measureTime) {
+			while (partTimes.get(currentPart) > measureTime) {
+				currentPart--;
+			}
+		}
+		
+		// notes
+		// make sure next note is not less than (before) measureTime
+		while (notes.get(currentEvent - 1).getTime() > measureTime) {
+			currentEvent--;
+		}
 	}
 }
 
