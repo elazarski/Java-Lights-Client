@@ -33,6 +33,7 @@ public class MidiInterface {
 		
 		inputDevices = new ArrayList<MidiDevice>();
 		inputTransmitters = new ArrayList<Transmitter>();
+		inputReceivers = new ArrayList<InputReceiver>();
 		outputDevices = new ArrayList<MidiDevice>();
 		outputReceivers = new ArrayList<Receiver>();
 	}
@@ -154,12 +155,12 @@ public class MidiInterface {
 					current.open();
 				}
 			}
-//			for (int i = 0; i < inputDevices.size(); i++) {
-//				inputDevices.get(i).open();
-//			}
-//			for (int i = 0; i < outputDevices.size(); i++) {
-//				outputDevices.get(i).open();
-//			}
+			for (int i = 0; i < inputDevices.size(); i++) {
+				inputDevices.get(i).open();
+			}
+			for (int i = 0; i < outputDevices.size(); i++) {
+				outputDevices.get(i).open();
+			}
 			
 			// connect to control device
 			if (controlDevice != null) {
@@ -306,3 +307,4 @@ public class MidiInterface {
 	}
 	
 }
+
