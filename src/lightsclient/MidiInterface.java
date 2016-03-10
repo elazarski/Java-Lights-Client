@@ -221,7 +221,7 @@ public class MidiInterface {
 			boolean songDone = false;
 			while (!songDone) {
 
-				// check playQueue for messages
+				// check queues for messages
 				MyMessage playMessage = null;
 				MyMessage mainMessage = null;
 				MyMessage controlMessage = null;
@@ -266,14 +266,25 @@ public class MidiInterface {
 				
 				// check for control message
 				if (controlMessage != null) {
-					// should only get time updates, but check to be safe for now
-					if (controlMessage.getType() == Type.TIME_UPDATE) {
+					// make sure not a stop message for the song
+					if (controlMessage.getType() == Type.STOP && controlMessage.getChannel() == 0) {
+						songDone = true;
 						
-						// update InputReceivers
-						for (InputReceiver current : inputReceivers) {
-							current.notify(controlMessage);
-						}
+						// exit while loop
+						break;
 					}
+					
+					// forward message to InputReceivers
+					for (InputReceiver current : inputReceivers) {
+						current.notify(controlMessage);
+					}
+//					if (controlMessage.getType() == Type.TIME_UPDATE) {
+//						
+//						// update InputReceivers
+//						for (InputReceiver current : inputReceivers) {
+//							current.notify(controlMessage);
+//						}
+//					}
 				}
 			}
 			

@@ -104,7 +104,17 @@ public class Part {
 	}
 	
 	public void nextPart() {
+		// make sure we are not out of parts
+		if (currentPart == partTimes.size()) {
+			return;
+		}
+		
 		currentPart++;
+		
+		// make sure we are not out of parts
+		if (currentPart > partTimes.size()) {
+			return;
+		}
 		
 		// find new currentNote and currentMeasure
 		long partTIme = partTimes.get(currentPart);
@@ -121,7 +131,13 @@ public class Part {
 	}
 	
 	public void nextMeasure() {
+		// make sure we are not out of measures
+		if (currentMeasure == measureTimes.size()) {
+			return;
+		}
+		
 		currentMeasure++;
+		
 		
 		// find new currentNote and currentPart
 		long measureTime = measureTimes.get(currentMeasure);
@@ -142,6 +158,11 @@ public class Part {
 	}
 	
 	public void previousPart() {
+		// make sure we are not at the beginning of the song still
+		if (currentPart == 0) {
+			return;
+		}
+		
 		currentPart--;
 		
 		// find new currentNote and currentMeasure
@@ -159,6 +180,11 @@ public class Part {
 	}
 	
 	public void previousMeasure() {
+		// make sure we are not at the beginning of the song still
+		if (currentMeasure == 0) {
+			return;
+		}
+		
 		currentMeasure--;
 		
 		// find new currentNote and currentPart

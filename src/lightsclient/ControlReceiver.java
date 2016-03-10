@@ -6,8 +6,6 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 
-import org.omg.CORBA.TIMEOUT;
-
 import lightsclient.MyMessage.Type;
 
 public class ControlReceiver implements Receiver {
@@ -43,8 +41,10 @@ public class ControlReceiver implements Receiver {
 				MyMessage snd = null;
 				switch (sm.getData1()) {
 				case 37:								// START: C# (First black key)
+					snd = new MyMessage(0, Type.START);
 					break;
 				case 39:								// STOP: D# (Second black key)
+					snd = new MyMessage(0, Type.STOP);
 					break;
 				case 41:								// NEXT MEASURE (F)
 					snd = new MyMessage(1, Type.TIME_UPDATE);
@@ -58,6 +58,11 @@ public class ControlReceiver implements Receiver {
 				case 47:								// PREVIOUS PART (B)
 					snd = new MyMessage(-2, Type.TIME_UPDATE);
 					break;
+				case 61:								// initiate jam session (Second C#)
+					snd = new MyMessage(1, Type.START);
+					break;
+				case 63:								// END JAM SESSION (Second D#)
+					snd = new MyMessage(1, Type.STOP);
 				default:
 					System.err.println("Unrecognized input from command keyboard: " + sm.getData1());
 				}

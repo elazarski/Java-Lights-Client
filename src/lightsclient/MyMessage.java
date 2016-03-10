@@ -101,4 +101,47 @@ public class MyMessage {
 	public void setData2(Object data2) {
 		this.data2 = data2;
 	}
+	
+	@Override
+	public String toString() {
+		String ret = "Type: ";
+		
+		String typeStr = "";
+		switch (this.getType()) {
+		case PART_DONE:
+			typeStr = "PART_DONE";
+			break;
+		case MIDI_SELECTION:
+			typeStr = "MIDI_SELECTION";
+			break;
+		case READ_FILE:
+			typeStr = "READ_FILE";
+			break;
+		case SETLIST_REORDER:
+			typeStr = "SETLIST_REORDER";
+			break;
+		case SONG_UPDATE:
+			typeStr = "SONG_UPDATE";
+			break;
+		case START:
+			typeStr = "START";
+			break;
+		case STOP:
+			typeStr = "STOP";
+			break;
+		case SYSTEM_EXIT:
+			typeStr = "SYSTEM_EXIT";
+			break;
+		case TIME_UPDATE:
+			typeStr = "TIME_UPDATE";
+			break;
+		default:
+			break;
+		}
+		
+		ret = ret.concat(typeStr);
+		ret = ret.concat("\nChannel: " + this.channel + "\n");
+		
+		return ret;
+	}
 }
