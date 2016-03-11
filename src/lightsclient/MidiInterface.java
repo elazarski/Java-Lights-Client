@@ -230,13 +230,14 @@ public class MidiInterface {
 					playMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
 					mainMessage = inQueue.poll(1, TimeUnit.MICROSECONDS);
 					controlMessage = controlQueue.poll(1, TimeUnit.MICROSECONDS);
-					System.out.println("here");
+					//System.out.println("here");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
 				if (playMessage != null) {
+					System.out.println(playMessage.toString());
 					boolean partDone = parseMessage(playMessage);
 					int channel = playMessage.getChannel();
 					

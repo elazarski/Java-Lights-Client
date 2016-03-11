@@ -45,6 +45,7 @@ public class InputReceiver implements Receiver {
 				int command = sm.getCommand();
 
 				if (command == ShortMessage.NOTE_ON) {
+					System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
 					if (part.isNext(sm.getData1())) {
 						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE));
 					}
