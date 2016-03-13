@@ -182,7 +182,7 @@ public class Main {
 						
 						
 					default:
-						System.err.println("COMMAND FROM PLAYTHREAD NOT IMPLEMENTED YET");
+						System.err.println("COMMAND FROM PLAYTHREAD NOT IMPLEMENTED YET IN MAIN");
 						break;
 						
 					}

@@ -45,7 +45,7 @@ public class InputReceiver implements Receiver {
 				int command = sm.getCommand();
 
 				if (command == ShortMessage.NOTE_ON) {
-					System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
+					//System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
 					if (part.isNext(sm.getData1())) {
 						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE));
 					}
@@ -76,6 +76,7 @@ public class InputReceiver implements Receiver {
 		case START:
 			if (channel == 0) {
 				startPressed = true;
+				System.out.println("START RECEIVED ON CHANNEL " + part.getChannel());
 			} else if (channel == 1) {
 				jam = true;
 			}
@@ -93,16 +94,18 @@ public class InputReceiver implements Receiver {
 		case TIME_UPDATE:
 			// figure out what to do based upon channel
 			switch (channel) {
-			case 1: // next part
+			case 2: // next part
+				System.out.println("Calling nextPart() from " + part.getChannel()); 
 				part.nextPart();
 				break;
-			case 2: // next measure
+			case 1: // next measure
+				System.out.println("Calling nextMeasure() from " + part.getChannel());
 				part.nextMeasure();
 				break;
-			case -1: // previous part
+			case -2: // previous part
 				part.previousPart();
 				break;
-			case -2: // previous measure
+			case -1: // previous measure
 				part.previousMeasure();
 				break;
 			default:
@@ -110,6 +113,7 @@ public class InputReceiver implements Receiver {
 				System.err.println(message.toString());
 				break;
 			}
+			break;
 		default:
 			System.err.println("MESSAGE NOT IMPLEMENTED YET IN InputReceiver");
 			System.err.println(message.toString());

@@ -37,8 +37,8 @@ public class MainWindow {
 	 * Launch the application.
 	 * @param args
 	 */
-	static LinkedBlockingQueue<MyMessage> inQueue;
-	static LinkedBlockingQueue<MyMessage> outQueue;
+	private static LinkedBlockingQueue<MyMessage> inQueue;
+	private static LinkedBlockingQueue<MyMessage> outQueue;
 	
 	/**
 	 * @wbp.parser.entryPoint

@@ -59,6 +59,7 @@ public class Part {
 	}
 	
 	public boolean isNext(int input) {
+		System.out.println(Thread.currentThread().getName());
 		// ask current event if this is the correct input
 		Event ev = notes.get(currentEvent);
 		
@@ -109,7 +110,9 @@ public class Part {
 			return;
 		}
 		
+		System.out.print(channel + ": Part " + currentPart + " -> ");
 		currentPart++;
+		System.out.print(currentPart + ", Measure " + currentMeasure + " -> ");
 		
 		// make sure we are not out of parts
 		if (currentPart > partTimes.size()) {
@@ -124,10 +127,13 @@ public class Part {
 			currentMeasure++;
 		}
 		
+		System.out.print(currentMeasure + ", Event " + currentEvent + " -> ");
 		// note
 		while (notes.get(currentEvent).getTime() < partTIme) {
 			currentEvent++;
 		}
+		
+		System.out.println(currentEvent);
 	}
 	
 	public void nextMeasure() {
@@ -136,7 +142,9 @@ public class Part {
 			return;
 		}
 		
+		System.out.print(channel + ": Measure " + currentMeasure + " -> ");
 		currentMeasure++;
+		System.out.print(currentMeasure + ", Part " + currentPart + " -> ");
 		
 		
 		// find new currentNote and currentPart
@@ -150,11 +158,14 @@ public class Part {
 				currentPart++;
 			}
 		}
+		System.out.print(currentPart + ", Event " + currentEvent + " -> ");
 		
 		// new note
 		while (notes.get(currentEvent).getTime() < measureTime) {
 			currentEvent++;
 		}
+		
+		System.out.println(currentEvent);
 	}
 	
 	public void previousPart() {

@@ -237,7 +237,7 @@ public class MidiInterface {
 				}
 				
 				if (playMessage != null) {
-					System.out.println(playMessage.toString());
+					//System.out.println(playMessage.toString());
 					boolean partDone = parseMessage(playMessage);
 					int channel = playMessage.getChannel();
 					
@@ -276,9 +276,12 @@ public class MidiInterface {
 					}
 					
 					// forward message to InputReceivers
-					for (InputReceiver current : inputReceivers) {
-						current.notify(controlMessage);
+					for (int j = 0; j < numInput; j++) {
+						inputReceivers.get(j).notify(controlMessage);
 					}
+//					for (InputReceiver current : inputReceivers) {
+//						current.notify(controlMessage);
+//					}
 //					if (controlMessage.getType() == Type.TIME_UPDATE) {
 //						
 //						// update InputReceivers

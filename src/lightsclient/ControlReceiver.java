@@ -38,6 +38,7 @@ public class ControlReceiver implements Receiver {
 			int command = sm.getCommand();
 			
 			if (command == ShortMessage.NOTE_ON) {
+				System.out.println("Got control: " + sm.getData1());
 				MyMessage snd = null;
 				switch (sm.getData1()) {
 				case 37:								// START: C# (First black key)
