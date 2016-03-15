@@ -66,7 +66,7 @@ public class InputReceiver implements Receiver {
 	}
 
 	// notify with MyMessage
-	public void notify(MyMessage message) {
+	public Long notify(MyMessage message) {
 		System.out.println(Thread.currentThread().getName());
 
 		// parse message
@@ -93,32 +93,35 @@ public class InputReceiver implements Receiver {
 			break;
 		case TIME_UPDATE:
 			// figure out what to do based upon channel
+			Long newTime = null;
 			switch (channel) {
 			case 2: // next part
 				System.out.println("Calling nextPart() from " + part.getChannel()); 
-				part.nextPart();
+				newTime = part.nextPart();
 				break;
 			case 1: // next measure
 				System.out.println("Calling nextMeasure() from " + part.getChannel());
-				part.nextMeasure();
+				newTime = part.nextMeasure();
 				break;
 			case -2: // previous part
-				part.previousPart();
+				newTime = part.previousPart();
 				break;
 			case -1: // previous measure
-				part.previousMeasure();
+				newTime = part.previousMeasure();
 				break;
 			default:
 				System.err.println("TIME_UPDATE WITH CHANNEL " + channel + " NOT IMPLEMENTED YET IN InputTReceiver");
 				System.err.println(message.toString());
 				break;
 			}
-			break;
+			return newTime;
 		default:
 			System.err.println("MESSAGE NOT IMPLEMENTED YET IN InputReceiver");
 			System.err.println(message.toString());
 			break;
 		}
+		
+		return null;
 		// int channel = message.getChannel();
 		// if (channel == 1) { // next part
 		//
@@ -129,6 +132,12 @@ public class InputReceiver implements Receiver {
 		// } else if (channel == -2) { // previous measure
 		//
 		// }
+	}
+	
+	public void changeTime(Long newTime) {
+		if (part.getTime() != newTime) {
+			part.changeTime(newTime);
+		}
 	}
 
 }

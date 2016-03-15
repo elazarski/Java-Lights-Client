@@ -41,6 +41,10 @@ public class Part {
 		return channel;
 	}
 	
+	public long getTime() {
+		return notes.get(currentEvent).getTime();
+	}
+	
 	public void addOutputTimes(long[] p) {
 		Long[] temp = new Long[p.length];
 		for (int i = 0; i < p.length; i++) {
@@ -67,7 +71,7 @@ public class Part {
 		
 		// check for next MP if correct note
 		if (correct) {
-			nextMP(ev);
+			nextMP();
 			
 			// check isDone to see if we should increment currentNote
 			if (ev.isDone()) {
@@ -88,35 +92,71 @@ public class Part {
 	}
 	
 	// check if we have changed measures or parts
-	private void nextMP(Event ev) {
+	private void nextMP() {
 		// check measure first
 		// get time
 		long nextMeasure = measureTimes.get(currentMeasure + 1);
-		if (ev.getTime() >= nextMeasure) {
+		if (getTime() >= nextMeasure) {
 			currentMeasure++;
 		}
 		
 		// check parts next
 		// get time
 		long nextPart = partTimes.get(currentPart + 1);
-		if (ev.getTime() >= nextPart) {
+		if (getTime() >= nextPart) {
 			currentPart++;
 		}
 	}
 	
-	public void nextPart() {
+	private void findForwardMP() {
+		// measures first
+		long measure = measureTimes.get(currentMeasure);
+		while (getTime() >= measure) {
+			currentMeasure++;
+			
+			measure  = measureTimes.get(currentMeasure);
+		}
+		
+		// parts next
+		long part = partTimes.get(currentPart);
+		while (getTime() >= part) {
+			currentPart++;
+			
+			part = partTimes.get(currentPart);
+		}
+	}
+	
+	private void findBackwardMP() {
+		// measures first
+		long measure = measureTimes.get(currentMeasure);
+		while (getTime() < measure) {
+			currentMeasure--;
+			
+			measure = measureTimes.get(currentMeasure);
+		}
+		
+		// parts next
+		long part = partTimes.get(currentPart);
+		while (getTime() < part) {
+			currentPart--;
+			
+			part = partTimes.get(currentPart);
+		}
+	}
+	
+	public Long nextPart() {
 		// make sure we are not out of parts
 		if (currentPart == partTimes.size()) {
-			return;
+			return null;
 		}
 		
 		System.out.print(channel + ": Part " + currentPart + " -> ");
 		currentPart++;
 		System.out.print(currentPart + ", Measure " + currentMeasure + " -> ");
 		
-		// make sure we are not out of parts
-		if (currentPart > partTimes.size()) {
-			return;
+		// check to see if we are waiting for the start of a new part
+		if (partTimes.get(currentPart) == notes.get(currentEvent + 1).getTime()) {
+			currentPart++;
 		}
 		
 		// find new currentNote and currentMeasure
@@ -134,18 +174,24 @@ public class Part {
 		}
 		
 		System.out.println(currentEvent);
+		
+		return notes.get(currentEvent).getTime();
 	}
 	
-	public void nextMeasure() {
+	public Long nextMeasure() {
 		// make sure we are not out of measures
 		if (currentMeasure == measureTimes.size()) {
-			return;
+			return null;
 		}
 		
 		System.out.print(channel + ": Measure " + currentMeasure + " -> ");
 		currentMeasure++;
 		System.out.print(currentMeasure + ", Part " + currentPart + " -> ");
 		
+		// make sure we are not waiting for the current measure to start
+		if (measureTimes.get(currentMeasure) == notes.get(currentEvent + 1).getTime()) {
+			currentMeasure++;
+		}
 		
 		// find new currentNote and currentPart
 		long measureTime = measureTimes.get(currentMeasure);
@@ -166,12 +212,15 @@ public class Part {
 		}
 		
 		System.out.println(currentEvent);
+		return notes.get(currentEvent).getTime();
 	}
 	
-	public void previousPart() {
+	public Long previousPart() {
 		// make sure we are not at the beginning of the song still
 		if (currentPart == 0) {
-			return;
+			currentMeasure = 0;
+			currentEvent = 0;
+			return new Long(0);
 		}
 		
 		currentPart--;
@@ -188,12 +237,16 @@ public class Part {
 		while (notes.get(currentEvent - 1).getTime() > partTime) {
 			currentEvent--;
 		}
+		
+		return notes.get(currentEvent).getTime();
 	}
 	
-	public void previousMeasure() {
+	public Long previousMeasure() {
 		// make sure we are not at the beginning of the song still
 		if (currentMeasure == 0) {
-			return;
+			currentPart = 0;
+			currentEvent = 0;
+			return new Long(0);
 		}
 		
 		currentMeasure--;
@@ -212,6 +265,24 @@ public class Part {
 		// make sure next note is not less than (before) measureTime
 		while (notes.get(currentEvent - 1).getTime() > measureTime) {
 			currentEvent--;
+		}
+		
+		return notes.get(currentEvent).getTime();
+	}
+	
+	public void changeTime(long newTime) {
+		if (newTime > getTime()) {
+			while (getTime() < newTime) {
+				currentEvent++;
+			}
+			
+			findForwardMP();
+		} else {
+			while (getTime() > newTime) {
+				currentEvent--;
+			}
+			
+			findBackwardMP();
 		}
 	}
 }
