@@ -115,7 +115,7 @@ public class Part {
 	}
 	
 	public boolean isNext(int input) {
-		System.out.println(Thread.currentThread().getName());
+		//System.out.println(Thread.currentThread().getName());
 		// if we have had 4 possible notes in a row, move to that note
 		if (numPossibles >= 4) {
 			currentEvent = possibleEvent;
@@ -160,6 +160,7 @@ public class Part {
 		// check next handful of notes
 		Long time = possibleEvent(input, currentEvent);
 		if (time != null) {
+			System.out.println("New note on channel " + channel);
 			return time;
 		}
 		
@@ -172,6 +173,7 @@ public class Part {
 			time = possibleEvent(input, index);
 			
 			if (time != null) {
+				System.out.println("New measure on channel " + channel);
 				return time;
 			}
 		}
@@ -185,6 +187,7 @@ public class Part {
 			time = possibleEvent(input, index);
 			
 			if (time != null) {
+				System.out.println("New Part on channel " + channel);
 				return time;
 			}
 		}
