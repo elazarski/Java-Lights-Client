@@ -47,7 +47,13 @@ public class InputReceiver implements Receiver {
 				if (command == ShortMessage.NOTE_ON) {
 					//System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
 					if (part.isNext(sm.getData1())) {
-						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE));
+						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), true));
+					} else {
+						Long time = part.isPossible(sm.getData1());
+						
+						if (time != null) {
+							sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, time, false));
+						}
 					}
 				}
 
@@ -135,7 +141,8 @@ public class InputReceiver implements Receiver {
 	}
 	
 	public void changeTime(Long newTime) {
-		if (part.getTime() != newTime) {
+		// if part time or measure time != new time, change part
+		if ((part.getPartTime() != newTime) || (part.getMeasureTime() != newTime)) {
 			part.changeTime(newTime);
 		}
 	}

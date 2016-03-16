@@ -4,6 +4,7 @@ public class Event {
 	private int[] notes;
 	private long time;
 	private int numInChord;
+	private int possibleNumInChord;
 	
 	public Event(String line) {
 		String[] elements = line.split(" ");
@@ -17,6 +18,7 @@ public class Event {
 		}
 		
 		numInChord = 0;
+		possibleNumInChord = 0;
 	}
 	
 	public boolean contains(int note) {
@@ -32,6 +34,23 @@ public class Event {
 		return false;
 	}
 	
+	public boolean possiblyContains(int note) {
+		
+		for (int current : notes) {
+			if (noteEquals(note, current)) {
+				possibleNumInChord++;
+				
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public void resetPossible() {
+		possibleNumInChord = 0;
+	}
+	
 	private boolean noteEquals(int input, int current) {
 		if ((input >= current - 2) && (input <= current + 2)) {
 			return true;
@@ -42,6 +61,14 @@ public class Event {
 	
 	public boolean isDone() {
 		if (numInChord >= notes.length) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public boolean possiblyIsDone() {
+		if (possibleNumInChord >= notes.length) {
 			return true;
 		} else {
 			return false;
