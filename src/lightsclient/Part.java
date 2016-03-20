@@ -115,7 +115,6 @@ public class Part {
 	}
 	
 	public boolean isNext(int input) {
-		//System.out.println(Thread.currentThread().getName());
 		// if we have had 4 possible notes in a row, move to that note
 		if (numPossibles >= 4) {
 			System.out.println("Moving from " + currentEvent + " to " + possibleEvent);
@@ -125,20 +124,22 @@ public class Part {
 		
 		// ask current event if this is the correct input
 		Event ev = notes.get(currentEvent);
-		
 		boolean correct = ev.contains(input);
 		
-		// check for next MP if correct note
-		if (correct) {
-			nextMP();
-			
+		// check for for correct note
+		if (correct) {			
 			// check isDone to see if we should increment currentNote
 			if (ev.isDone()) {
 				currentEvent++;
-				possibleEvent = currentEvent;
+				nextMP();
 			}
+			
+			// set possibleEvent to currentEvent
+			possibleEvent = currentEvent;
 		}
-
+		
+		// make sure numPossibles is 0
+		numPossibles = 0;
 		return correct;
 	}
 	
@@ -194,25 +195,7 @@ public class Part {
 			}
 		}
 		
-		//else {
-//			// first attempt at a new possible note
-//			// check through measures and check to see if this could be a
-//			// possible start to one in the future
-//			for (int i = currentMeasure; i < measureIndexes.length; i++) {
-//				Event ev = notes.get(i + numPossibles);
-//
-//				if (ev.possiblyContains(input)) {
-//					possibleEvent = i + numPossibles;
-//					
-//					if (ev.possiblyIsDone()) {
-//						numPossibles++;
-//					}
-//
-//					return ev.getTime();
-//				}
-//			}
-//		}
-		
+		// no possible place found
 		return null;
 	}
 	
