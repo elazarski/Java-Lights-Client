@@ -179,8 +179,10 @@ public class MidiInterface {
 		
 		// connect to control receiver
 		LinkedBlockingQueue<MyMessage> controlQueue = new LinkedBlockingQueue<MyMessage>();
-		controlReceiver = ControlReceiver.newInstance(controlQueue);
-		controlTransmitter.setReceiver(controlReceiver);
+		if (controlDevice != null) {
+			controlReceiver = ControlReceiver.newInstance(controlQueue);
+			controlTransmitter.setReceiver(controlReceiver);
+		}
 	
 		// play songs
 		for (int i = 0; i < setlist.getNumSongs(); i++) {
@@ -209,6 +211,11 @@ public class MidiInterface {
 				InputReceiver recv = InputReceiver.newInstance(s.getInput(j), playQueue);
 				inputTransmitters.get(j).setReceiver(recv);
 				inputReceivers.set(j, recv);
+				
+				// if no control keyboard, send START message to receivers
+				if (controlDevice == null) {
+					recv.notify(new MyMessage(0, Type.START));
+				}
 			}
 			
 			// connect each outputPart to a Receiver

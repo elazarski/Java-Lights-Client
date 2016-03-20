@@ -118,6 +118,7 @@ public class Part {
 		//System.out.println(Thread.currentThread().getName());
 		// if we have had 4 possible notes in a row, move to that note
 		if (numPossibles >= 4) {
+			System.out.println("Moving from " + currentEvent + " to " + possibleEvent);
 			currentEvent = possibleEvent;
 			numPossibles = 0;
 		}
@@ -147,6 +148,7 @@ public class Part {
 			Event ev = notes.get(possibleEvent);
 			
 			if (ev.possiblyContains(input)) {
+				System.out.println("Looking at a new place, possibly " + possibleEvent);
 				
 				if (ev.possiblyIsDone()) {
 					possibleEvent++;
@@ -160,7 +162,7 @@ public class Part {
 		// check next handful of notes
 		Long time = possibleEvent(input, currentEvent);
 		if (time != null) {
-			System.out.println("New note on channel " + channel);
+			System.out.println("Possible new note on channel " + channel);
 			return time;
 		}
 		
@@ -173,7 +175,7 @@ public class Part {
 			time = possibleEvent(input, index);
 			
 			if (time != null) {
-				System.out.println("New measure on channel " + channel);
+				System.out.println("Possible new measure on channel " + channel);
 				return time;
 			}
 		}
@@ -187,7 +189,7 @@ public class Part {
 			time = possibleEvent(input, index);
 			
 			if (time != null) {
-				System.out.println("New Part on channel " + channel);
+				System.out.println("Possible new part on channel " + channel);
 				return time;
 			}
 		}

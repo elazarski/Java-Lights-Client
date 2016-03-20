@@ -1,10 +1,13 @@
 package lightsclient;
 
+import java.sql.Time;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
+
+import com.ibm.icu.impl.duration.TimeUnit;
 
 import lightsclient.MyMessage.Type;
 
@@ -46,10 +49,11 @@ public class InputReceiver implements Receiver {
 
 				if (command == ShortMessage.NOTE_ON) {
 					//System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
-					if (part.isNext(sm.getData1())) {
+					int noteNum = sm.getData1();
+					if (part.isNext(noteNum)) {
 						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), true));
 					} else {
-						Long time = part.isPossible(sm.getData1());
+						Long time = part.isPossible(noteNum);
 						
 						if (time != null) {
 							sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, time, false));
@@ -67,8 +71,7 @@ public class InputReceiver implements Receiver {
 	}
 
 	private void sendData(MyMessage data) {
-		boolean x = queue.offer(data);
-		System.out.println(x);
+		queue.offer(data);
 	}
 
 	// notify with MyMessage

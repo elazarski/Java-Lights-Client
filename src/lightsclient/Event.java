@@ -5,6 +5,7 @@ public class Event {
 	private long time;
 	private int numInChord;
 	private int possibleNumInChord;
+	private boolean chord;
 	
 	public Event(String line) {
 		String[] elements = line.split(" ");
@@ -19,6 +20,16 @@ public class Event {
 		
 		numInChord = 0;
 		possibleNumInChord = 0;
+		
+		if (notes.length > 1) {
+			chord = false;
+		} else {
+			chord = true;
+		}
+	}
+	
+	public boolean inChord() {
+		return chord;
 	}
 	
 	public boolean contains(int note) {
@@ -52,7 +63,7 @@ public class Event {
 	}
 	
 	private boolean noteEquals(int input, int current) {
-		if ((input >= current - 2) && (input <= current + 2)) {
+		if ((input >= current - 1) && (input <= current + 1)) {
 			return true;
 		}
 		
