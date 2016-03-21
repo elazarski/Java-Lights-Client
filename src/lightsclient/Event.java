@@ -59,6 +59,11 @@ public class Event {
 		possibleNumInChord = 0;
 	}
 	
+	public void reset() {
+		numInChord = 0;
+		possibleNumInChord = 0;
+	}
+	
 	private boolean noteEquals(int input, int current) {
 		if ((input >= current - 1) && (input <= current + 1)) {
 			return true;

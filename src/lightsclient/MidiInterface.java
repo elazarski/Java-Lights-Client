@@ -264,10 +264,27 @@ public class MidiInterface {
 				
 				// check for message from main
 				if (mainMessage != null) {
-					if (mainMessage.getType() == Type.SYSTEM_EXIT) {
+//					if (mainMessage.getType() == Type.SYSTEM_EXIT) {
+//						songDone = true;
+//						
+//						// exit while loop
+//						break;
+//					}
+					
+					switch (mainMessage.getType()) {
+					case SYSTEM_EXIT:
 						songDone = true;
+						break;
+					case STOP:
+						for (int j = 0; j < numInput; j++) {
+							InputReceiver current = inputReceivers.get(j);
+							current.notify(mainMessage);
+						}
 						
-						// exit while loop
+						songDone = true;
+						i = setlist.getNumSongs() + 1;
+						break;
+					default:
 						break;
 					}
 				}
@@ -277,6 +294,12 @@ public class MidiInterface {
 					// make sure not a stop message for the song
 					if (controlMessage.getType() == Type.STOP && controlMessage.getChannel() == 0) {
 						songDone = true;
+						
+						// notify receivers
+						for (int j = 0; j < numInput; j++) {
+							InputReceiver current = inputReceivers.get(j);
+							current.notify(controlMessage);
+						}
 						
 						// exit while loop
 						break;
@@ -312,10 +335,9 @@ public class MidiInterface {
 			}
 			
 			// close each receiver now that this song is done
-			for (int j = 0; j < inputTransmitters.size(); j++) {
+			for (int j = 0; j < numInput; j++) {
 				inputTransmitters.get(j).getReceiver().close();
-			}
-			
+			}	
 		}
 	}
 	

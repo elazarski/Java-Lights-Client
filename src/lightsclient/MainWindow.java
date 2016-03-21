@@ -396,7 +396,7 @@ public class MainWindow {
 			@Override
 			public void widgetSelected(SelectionEvent arg0) {
 				// update main
-				MyMessage message = new MyMessage(Type.STOP);
+				MyMessage message = new MyMessage(0, Type.STOP);
 				sendData(message);
 				
 //				byte[] data = new byte[] {0x6};

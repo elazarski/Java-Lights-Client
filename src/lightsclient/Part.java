@@ -114,6 +114,18 @@ public class Part {
 		}
 	}
 	
+	public void reset() {
+		currentEvent = 0;
+		currentPart = 0;
+		currentMeasure = 0;
+		possibleEvent = 0;
+		numPossibles = 0;
+		
+		for (Event ev : notes) {
+			ev.reset();
+		}
+	}
+	
 	public boolean isNext(int input) {
 		// if we have had 4 possible notes in a row, move to that note
 		if (numPossibles >= 4) {
@@ -136,10 +148,11 @@ public class Part {
 			
 			// set possibleEvent to currentEvent
 			possibleEvent = currentEvent;
+		
+			// make sure numPossibles is 0
+			numPossibles = 0;
 		}
 		
-		// make sure numPossibles is 0
-		numPossibles = 0;
 		return correct;
 	}
 	
@@ -160,6 +173,20 @@ public class Part {
 			}
 		}
 		
+		// check next 3 notes first, if any of these three, move to that position
+		for (int i = 1; i < 4; i++) {
+			Event ev = notes.get(currentEvent + i);
+			
+			if (ev.possiblyContains(input)) {
+				// look to the next note
+				currentEvent = currentEvent + i + 1;
+				possibleEvent = currentEvent;
+				numPossibles = 0;
+				
+				return ev.getTime();
+			}
+		}
+		
 		// check next handful of notes
 		Long time = possibleEvent(input, currentEvent);
 		if (time != null) {
@@ -167,7 +194,7 @@ public class Part {
 			return time;
 		}
 		
-		// check next few of measures
+		// check next few measures
 		for (int i = currentMeasure + 1; i < currentMeasure + 4; i++) {
 			if (i > measureIndexes.length) {
 				break;
@@ -201,13 +228,18 @@ public class Part {
 	
 	private Long possibleEvent(int input, int index) {
 		// check next handful of events
-		for (int i = 1; i < 5; i++) {
+		for (int i = 1; i < 7; i++) {
+			if ((index + i) > notes.size()) {
+				break;
+			}
+			
 			Event ev = notes.get(index + i);
 
 			if (ev.possiblyContains(input)) {
 
 				if (ev.possiblyIsDone()) {
-					possibleEvent = index + i;
+					// look to next possibleEvent
+					possibleEvent = index + i + 1;
 					numPossibles++;
 
 					return ev.getTime();

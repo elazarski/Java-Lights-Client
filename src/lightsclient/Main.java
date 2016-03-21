@@ -152,7 +152,8 @@ public class Main {
 						
 					case STOP:
 						// stop button pressed
-						System.out.println("stop");
+//						System.out.println("stop");
+						playInQueue.offer(windowMessage);
 						break;
 						
 						

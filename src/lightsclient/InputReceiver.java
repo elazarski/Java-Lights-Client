@@ -76,7 +76,7 @@ public class InputReceiver implements Receiver {
 
 	// notify with MyMessage
 	public Long notify(MyMessage message) {
-		System.out.println(Thread.currentThread().getName());
+//		System.out.println(Thread.currentThread().getName());
 
 		// parse message
 		int channel = message.getChannel();
@@ -85,7 +85,7 @@ public class InputReceiver implements Receiver {
 		case START:
 			if (channel == 0) {
 				startPressed = true;
-				System.out.println("START RECEIVED ON CHANNEL " + part.getChannel());
+//				System.out.println("START RECEIVED ON CHANNEL " + part.getChannel());
 			} else if (channel == 1) {
 				jam = true;
 			}
@@ -96,6 +96,8 @@ public class InputReceiver implements Receiver {
 				// remind PlayThread
 				MyMessage snd = new MyMessage(part.getChannel(), Type.PART_DONE);
 				sendData(snd);
+				
+				part.reset();
 			} else if (channel == 1) {
 				jam = false;
 			}
