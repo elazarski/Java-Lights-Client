@@ -4,46 +4,35 @@ import java.util.ArrayList;
 
 public class Part {
 	
-	private int currentEvent;
-	private int currentMeasure;
-	private int currentPart;
-	
-	private int possibleEvent;
-	private int numPossibles;
+	private int currentEvent = 0;
+	private int currentMeasure = 0;
+	private int currentPart = 0;
 	
 	private int channel;
 	private ArrayList<Event> notes;		
-	private ArrayList<Long[]> outputTimes;
-	private ArrayList<Long> partTimes;
-	private ArrayList<Long> measureTimes;
+	private ArrayList<Long[]> outputTimes = new ArrayList<Long[]>();
+	private ArrayList<Long> partTimes = new ArrayList<Long>();
+	private ArrayList<Long> measureTimes = new ArrayList<Long>();
+	
+	private int possibleEvent = 0;
+	private int numPossibles = 0;
 	
 	private int[] partIndexes;
 	private int[] measureIndexes;
 	
+	private ArrayList<Integer> previousNotes = new ArrayList<Integer>();
+	private ArrayList<Phrase> phrases;
 	
 	public Part(int channel, String[] lines) {
 		this.channel = channel;
-		partTimes = new ArrayList<Long>();
-		measureTimes = new ArrayList<Long>();
-		outputTimes = new ArrayList<Long[]>();
 		
 		// initialize notes
 		notes = new ArrayList<Event>(lines.length);
-		
 		for (String line : lines) {
 			if (!line.equals("")) {
 				notes.add(new Event(line));
 			}
 		}
-		
-		// initialize CURRENT variables
-		currentEvent = 0;
-		currentMeasure = 0;
-		currentPart = 0;
-		
-		// initiate POSSIBLE values
-		possibleEvent = 0;
-		numPossibles = 0;
 	}
 	
 	
@@ -87,8 +76,9 @@ public class Part {
 		for (int i = 0; i < notes.size(); i++) {
 			Event ev = notes.get(i);
 			
-			// if current event time == current part time, then add value to partIndexes
-			if (ev.getTime() == partTimes.get(part)) {
+			// if current event time >= current part time, then add value to partIndexes
+			// if >, then we have passed the time for the next part, the current on will suffice
+			if (ev.getTime() >= partTimes.get(part)) {
 				partIndexes[part] = i;
 				part++;
 			}
@@ -106,12 +96,49 @@ public class Part {
 		for (int i = 0; i < notes.size(); i++) {
 			Event ev = notes.get(i);
 			
-			// if current event time == current measure time, then add value to measureIndexes
-			if (ev.getTime() == measureTimes.get(measure)) {
+			// if current event time >= current measure time, then add value to measureIndexes
+			// if >, then we have passed the time for the next measure, so the current index will suffice
+			if (ev.getTime() >= measureTimes.get(measure)) {
 				measureIndexes[measure] = i;
 				measure++;
 			}
 		}
+	}
+	
+	// method to determine phrases
+	// check times and melodies to do this
+	public void process() {
+		// get rid of empty measures and parts first
+		ArrayList<Integer> emptyMeasures = new ArrayList<Integer>();
+		ArrayList<Integer> emptyParts = new ArrayList<Integer>();
+		
+		// find empty measures
+		int previousIndex = measureIndexes[0];
+		for (int i = 1; i < measureIndexes.length; i++) {
+			int currentIndex = measureIndexes[i];
+			
+			if (currentIndex == previousIndex) {
+				emptyMeasures.add(currentIndex);
+			}
+			
+			previousIndex = currentIndex;
+		}
+		
+		// find empty parts
+		previousIndex = partIndexes[0];
+		for (int i = 1; i < partIndexes.length; i++) {
+			int currentIndex = partIndexes[i];
+			
+			if (currentIndex == previousIndex) {
+				emptyParts.add(currentIndex);
+			}
+			
+			previousIndex = currentIndex;
+		}
+		
+		// remove empty measures
+		int[] oldMeasureIndexes = measureIndexes;
+		
 	}
 	
 	public void reset() {

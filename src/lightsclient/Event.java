@@ -3,8 +3,8 @@ package lightsclient;
 public class Event {
 	private int[] notes;
 	private long time;
-	private int numInChord;
-	private int possibleNumInChord;
+	private int numInChord = 0;
+	private int possibleNumInChord = 0;
 	
 	public Event(String line) {
 		String[] elements = line.split(" ");
@@ -16,9 +16,11 @@ public class Event {
 		for (int i = 1; i < elements.length; i++) {
 			notes[i - 1] = Integer.parseInt(elements[i]);
 		}
-		
-		numInChord = 0;
-		possibleNumInChord = 0;
+	}
+	
+	public Event(int[] notes, long time) {
+		this.notes = notes;
+		this.time = time;
 	}
 	
 	public boolean isChord() {
