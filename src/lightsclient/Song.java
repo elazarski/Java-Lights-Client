@@ -39,8 +39,7 @@ public class Song {
 				p.addOutputTimes(times);
 			}
 			
-			p.addMeasures(measures);
-			p.addParts(parts);
+			p.process();
 		}
 	}
 	

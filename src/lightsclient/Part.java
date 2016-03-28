@@ -17,8 +17,8 @@ public class Part {
 	private int possibleEvent = 0;
 	private int numPossibles = 0;
 	
-	private int[] partIndexes;
-	private int[] measureIndexes;
+	private Integer[] partIndexes;
+	private Integer[] measureIndexes;
 	
 	private ArrayList<Integer> previousNotes = new ArrayList<Integer>();
 	private ArrayList<Phrase> phrases;
@@ -52,7 +52,7 @@ public class Part {
 	
 	
 	public long getMeasureTime() {
-		return partTimes.get(currentMeasure);
+		return measureTimes.get(currentMeasure);
 	}
 	
 	
@@ -66,79 +66,181 @@ public class Part {
 	}
 	
 	public void addParts(ArrayList<Long> parts) {
-		this.partTimes = parts;
+		ArrayList<Integer> tempPartIndexes = new ArrayList<Integer>(parts.size());
+		for (int i = 0; i < parts.size(); i++) {
+			tempPartIndexes.add(0);
+		}
 		
-		// populate partIndexes
-		this.partIndexes = new int[partTimes.size()];
-		
-		// go through notes and part times
 		int part = 0;
 		for (int i = 0; i < notes.size(); i++) {
 			Event ev = notes.get(i);
+			long time = ev.getTime();
 			
-			// if current event time >= current part time, then add value to partIndexes
-			// if >, then we have passed the time for the next part, the current on will suffice
-			if (ev.getTime() >= partTimes.get(part)) {
-				partIndexes[part] = i;
+			if (time >= parts.get(part)) {
+				tempPartIndexes.set(part, i);
 				part++;
+				
+				i++;
+				ev = notes.get(i);
+				time = ev.getTime();
+				while (time > parts.get(part)) {
+					tempPartIndexes.set(part - 1, -1);
+					parts.remove(part - 1);
+					part++;
+					i++;
+					ev = notes.get(i);
+					time = ev.getTime();
+				}
+				
+				part++;
+				
+				if (part >= parts.size()) {
+					break;
+				}
 			}
+			
+			this.partTimes = parts;
+			this.partIndexes = tempPartIndexes.toArray(new Integer[tempPartIndexes.size()]);
 		}
+		
+//		this.partTimes = parts;
+//		
+//		// populate partIndexes
+//		this.partIndexes = new int[partTimes.size()];
+//		
+//		// go through notes and part times
+//		int part = 0;
+//		for (int i = 0; i < notes.size(); i++) {
+//			Event ev = notes.get(i);
+//			
+//			// if current event time >= current part time, then add value to partIndexes
+//			// if >, then we have passed the time for the next part, the current on will suffice
+//			if (ev.getTime() >= partTimes.get(part)) {
+//				partIndexes[part] = i;
+//				part++;
+//			}
+//		}
 	}
 	
 	public void addMeasures(ArrayList<Long> measures) {
-		this.measureTimes = measures;
+		ArrayList<Integer> tempMeasureIndexes = new ArrayList<Integer>(measures.size());
+		for (int i = 0; i < measures.size(); i++) {
+			tempMeasureIndexes.add(0);
+		}
 		
-		// populate measureIndexes
-		this.measureIndexes = new int[measureTimes.size()];
-		
-		// go through notes and measure times
 		int measure = 0;
 		for (int i = 0; i < notes.size(); i++) {
 			Event ev = notes.get(i);
+			long time = ev.getTime();
 			
-			// if current event time >= current measure time, then add value to measureIndexes
-			// if >, then we have passed the time for the next measure, so the current index will suffice
-			if (ev.getTime() >= measureTimes.get(measure)) {
-				measureIndexes[measure] = i;
+			// if the current note has passed a measure index
+			if (time >= measures.get(measure)) {
+				
+				// add current index to array
+				tempMeasureIndexes.set(measure, i);
 				measure++;
+				
+				// if next note is also past the current measure, 
+				// get rid of the current measure
+				// repeat until next note is not after the
+				// measure being examined
+				i++;
+				ev = notes.get(i);
+				time = ev.getTime();
+				while (time > measures.get(measure)) {
+					tempMeasureIndexes.set(measure - 1, -1);
+					measures.remove(measure - 1);
+					measure++;
+					i++;
+					ev = notes.get(i);
+					time = ev.getTime();
+				}
+				
+				measure++;
+				if (measure >= measures.size()) {
+					break;
+				}
 			}
+			
+			this.measureTimes = measures;
+			this.measureIndexes = tempMeasureIndexes.toArray(new Integer[tempMeasureIndexes.size()]);
 		}
+		
+//		this.measureTimes = measures;
+//		
+//		// populate measureIndexes
+//		this.measureIndexes = new int[measureTimes.size()];
+//		
+//		// go through notes and measure times
+//		int measure = 0;
+//		for (int i = 0; i < notes.size(); i++) {
+//			Event ev = notes.get(i);
+//			long time = ev.getTime();
+//			
+//			// if current event time >= current measure time, then add value to measureIndexes
+//			// if >, then we have passed the time for the next measure, so the current index will suffice
+//			if (time >= measureTimes.get(measure)) {
+//				measureIndexes[measure] = i;
+//				measure++;
+//				
+//				// make sure that we did not just add an empty measure
+//				while (time > measureTimes.get(measure)) {
+//					
+//					// remove these later
+//					measureIndexes[measure-1] = -1;
+//					measure++;
+//				}
+//			}
+//		}
+//		
+//		// remove empty measures
+//		ArrayList<Long> oldMeasureTimes = measureTimes;
+//		ArrayList<Long> newMeasureTimes = new ArrayList<Long>(oldMeasureTimes.size());
+//		
+//		for (int i = 0; i < oldMeasureTimes.size(); i++) {
+//			int index = measureIndexes[i];
+//		}
 	}
 	
 	// method to determine phrases
 	// check times and melodies to do this
 	public void process() {
-		// get rid of empty measures and parts first
-		ArrayList<Integer> emptyMeasures = new ArrayList<Integer>();
-		ArrayList<Integer> emptyParts = new ArrayList<Integer>();
-		
-		// find empty measures
-		int previousIndex = measureIndexes[0];
-		for (int i = 1; i < measureIndexes.length; i++) {
-			int currentIndex = measureIndexes[i];
-			
-			if (currentIndex == previousIndex) {
-				emptyMeasures.add(currentIndex);
-			}
-			
-			previousIndex = currentIndex;
+		for (int i = 0; i < measureIndexes.length; i++) {
+			int beginIndex = measureIndexes[i];
+			int endIndex = measureIndexes[i + 1] - 1;
 		}
 		
-		// find empty parts
-		previousIndex = partIndexes[0];
-		for (int i = 1; i < partIndexes.length; i++) {
-			int currentIndex = partIndexes[i];
-			
-			if (currentIndex == previousIndex) {
-				emptyParts.add(currentIndex);
-			}
-			
-			previousIndex = currentIndex;
-		}
-		
-		// remove empty measures
-		int[] oldMeasureIndexes = measureIndexes;
-		
+//		// get rid of empty measures and parts first
+//		ArrayList<Integer> emptyMeasures = new ArrayList<Integer>();
+//		ArrayList<Integer> emptyParts = new ArrayList<Integer>();
+//		
+//		// find empty measures
+//		int previousIndex = measureIndexes[0];
+//		for (int i = 1; i < measureIndexes.length; i++) {
+//			int currentIndex = measureIndexes[i];
+//			
+//			if (currentIndex == previousIndex) {
+//				emptyMeasures.add(currentIndex);
+//			}
+//			
+//			previousIndex = currentIndex;
+//		}
+//		
+//		// find empty parts
+//		previousIndex = partIndexes[0];
+//		for (int i = 1; i < partIndexes.length; i++) {
+//			int currentIndex = partIndexes[i];
+//			
+//			if (currentIndex == previousIndex) {
+//				emptyParts.add(currentIndex);
+//			}
+//			
+//			previousIndex = currentIndex;
+//		}
+//		
+//		// remove empty measures
+//		int[] oldMeasureIndexes = measureIndexes;
+//		
 	}
 	
 	public void reset() {
