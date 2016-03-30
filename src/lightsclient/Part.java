@@ -125,7 +125,7 @@ public class Part {
 	public void addMeasures(ArrayList<Long> measures) {
 		ArrayList<Integer> tempMeasureIndexes = new ArrayList<Integer>(measures.size());
 		for (int i = 0; i < measures.size(); i++) {
-			tempMeasureIndexes.add(0);
+			tempMeasureIndexes.add(-1);
 		}
 		
 		int measure = 0;
@@ -138,7 +138,7 @@ public class Part {
 				
 				// add current index to array
 				tempMeasureIndexes.set(measure, i);
-				measure++;
+				//measure++;
 				
 				// if next note is also past the current measure, 
 				// get rid of the current measure
@@ -148,8 +148,8 @@ public class Part {
 				ev = notes.get(i);
 				time = ev.getTime();
 				while (time > measures.get(measure)) {
-					tempMeasureIndexes.set(measure - 1, -1);
-					measures.remove(measure - 1);
+					tempMeasureIndexes.set(measure, -1);
+					measures.remove(measure);
 					measure++;
 					i++;
 					ev = notes.get(i);
@@ -161,11 +161,20 @@ public class Part {
 					break;
 				}
 			}
-			
-			this.measureTimes = measures;
-			this.measureIndexes = tempMeasureIndexes.toArray(new Integer[tempMeasureIndexes.size()]);
 		}
 		
+		// remove all -1's from tempMeasureIndexes
+		int i = 0;
+		while (i < tempMeasureIndexes.size()) {
+			if (tempMeasureIndexes.get(i) == -1) {
+				tempMeasureIndexes.remove(i);
+			} else {
+				i++;
+			}
+		}
+		
+		this.measureTimes = measures;
+		this.measureIndexes = tempMeasureIndexes.toArray(new Integer[tempMeasureIndexes.size()]);
 //		this.measureTimes = measures;
 //		
 //		// populate measureIndexes
@@ -207,7 +216,13 @@ public class Part {
 	public void process() {
 		for (int i = 0; i < measureIndexes.length; i++) {
 			int beginIndex = measureIndexes[i];
-			int endIndex = measureIndexes[i + 1] - 1;
+			int endIndex = notes.size();
+			
+			if (i < measureIndexes.length) {
+				endIndex = measureIndexes[i + 1];
+			}
+			
+			System.out.println(beginIndex + "->" + endIndex);
 		}
 		
 //		// get rid of empty measures and parts first
