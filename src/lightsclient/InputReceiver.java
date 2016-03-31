@@ -48,13 +48,14 @@ public class InputReceiver implements Receiver {
 				int command = sm.getCommand();
 
 				if (command == ShortMessage.NOTE_ON) {
-					//System.out.println("GOT NOTE ON CHANNEL " + part.getChannel());
+					// System.out.println("GOT NOTE ON CHANNEL " +
+					// part.getChannel());
 					int noteNum = sm.getData1();
 					if (part.isNext(noteNum)) {
 						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), true));
 					} else {
 						Long time = part.isPossible(noteNum);
-						
+
 						if (time != null) {
 							sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, time, false));
 						}
@@ -76,7 +77,7 @@ public class InputReceiver implements Receiver {
 
 	// notify with MyMessage
 	public Long notify(MyMessage message) {
-//		System.out.println(Thread.currentThread().getName());
+		// System.out.println(Thread.currentThread().getName());
 
 		// parse message
 		int channel = message.getChannel();
@@ -85,7 +86,8 @@ public class InputReceiver implements Receiver {
 		case START:
 			if (channel == 0) {
 				startPressed = true;
-//				System.out.println("START RECEIVED ON CHANNEL " + part.getChannel());
+				// System.out.println("START RECEIVED ON CHANNEL " +
+				// part.getChannel());
 			} else if (channel == 1) {
 				jam = true;
 			}
@@ -96,7 +98,7 @@ public class InputReceiver implements Receiver {
 				// remind PlayThread
 				MyMessage snd = new MyMessage(part.getChannel(), Type.PART_DONE);
 				sendData(snd);
-				
+
 				part.reset();
 			} else if (channel == 1) {
 				jam = false;
@@ -107,7 +109,7 @@ public class InputReceiver implements Receiver {
 			Long newTime = null;
 			switch (channel) {
 			case 2: // next part
-				System.out.println("Calling nextPart() from " + part.getChannel()); 
+				System.out.println("Calling nextPart() from " + part.getChannel());
 				newTime = part.nextPart();
 				break;
 			case 1: // next measure
@@ -131,7 +133,7 @@ public class InputReceiver implements Receiver {
 			System.err.println(message.toString());
 			break;
 		}
-		
+
 		return null;
 		// int channel = message.getChannel();
 		// if (channel == 1) { // next part
@@ -144,7 +146,7 @@ public class InputReceiver implements Receiver {
 		//
 		// }
 	}
-	
+
 	public void changeTime(Long newTime) {
 		// if part time or measure time != new time, change part
 		if ((part.getPartTime() != newTime) || (part.getMeasureTime() != newTime)) {
