@@ -71,7 +71,7 @@ public class Part {
 
 			// check if current time is past the measure marker
 			if (eventTime >= measureTime) {
-				System.out.println(currentMeasure + " at index " + i);
+				// System.out.println(currentMeasure + " at index " + i);
 				measureIndexes[currentMeasure] = i;
 				currentMeasure++;
 
@@ -97,10 +97,15 @@ public class Part {
 					// check next measure
 					measureTime = measureTimes.get(currentMeasure);
 				}
-
 			}
-
 			measureTime = measureTimes.get(currentMeasure);
+		}
+
+		// check whether or not we got through all measures
+		if (!(currentMeasure >= measureIndexes.length)) {
+			for (; currentMeasure < measureIndexes.length; currentMeasure++) {
+				measureIndexes[currentMeasure] = notes.size();
+			}
 		}
 
 		// reset currentMeasure
@@ -109,13 +114,47 @@ public class Part {
 
 	public void addParts(ArrayList<Long> parts) {
 		partTimes = parts;
+
+		// populate partIndexes
+		partIndexes = new int[partTimes.size()];
+		long partTime = partTimes.get(currentPart);
+		for (int i = 0; i < notes.size(); i++) {
+			long eventTime = notes.get(i).getTime();
+
+			if (eventTime >= partTime) {
+				partIndexes[currentPart] = i;
+				currentPart++;
+
+				if (currentPart > partIndexes.length) {
+					break;
+				}
+				partTime = partTimes.get(currentMeasure);
+				while (eventTime >= partTime) {
+					partIndexes[currentPart] = i;
+					currentPart++;
+
+					if (currentPart > partIndexes.length) {
+						break;
+					}
+
+					partTime = partTimes.get(currentPart);
+				}
+			}
+			partTime = partTimes.get(currentPart);
+		}
+
+		if (!(currentPart >= partIndexes.length)) {
+			for (; currentPart < partIndexes.length; currentPart++) {
+				partIndexes[currentPart] = notes.size();
+			}
+		}
+
+		currentPart = 0;
 	}
 
 	// method to determine phrases
 	// check times and melodies to do this
 	public void process() {
-		System.out.println("Channel: " + channel);
-
 		for (int i = 0; i < measureIndexes.length; i++) {
 			int beginIndex = measureIndexes[i];
 			int endIndex = notes.size();
@@ -123,11 +162,15 @@ public class Part {
 			if (i < measureIndexes.length - 1) {
 				endIndex = measureIndexes[i + 1];
 			}
-
-			System.out.println(beginIndex + "->" + endIndex);
+			
+			// get number of notes in current measure
+			int measureSize = endIndex - beginIndex;
+			if (measureSize == 0) {
+				break;
+			}
+			
+			Event[] events = new Event[measureSize];
 		}
-
-		System.out.println();
 	}
 
 	public void reset() {
