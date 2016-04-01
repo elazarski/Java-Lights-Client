@@ -21,7 +21,7 @@ public class Part {
 	private int[] measureIndexes;
 
 	private ArrayList<Integer> previousNotes = new ArrayList<Integer>();
-	private ArrayList<Phrase> phrases;
+	private ArrayList<Phrase> phrases = new ArrayList<Phrase>();
 
 	public Part(int channel, String[] lines) {
 		this.channel = channel;
@@ -162,14 +162,22 @@ public class Part {
 			if (i < measureIndexes.length - 1) {
 				endIndex = measureIndexes[i + 1];
 			}
-			
+
 			// get number of notes in current measure
 			int measureSize = endIndex - beginIndex;
-			if (measureSize == 0) {
-				break;
+			if (measureSize > 0) {
+
+				Event[] events = new Event[measureSize];
+				for (int j = 0; j < events.length; j++) {
+					events[j] = notes.get(beginIndex + j);
+				}
+
+				Phrase[] lPhrases = Phrase.generate(events);
+				for (int j = 0; j < lPhrases.length; j++) {
+					lPhrases[j].offset(beginIndex);
+					phrases.add(lPhrases[j]);
+				}
 			}
-			
-			Event[] events = new Event[measureSize];
 		}
 	}
 
