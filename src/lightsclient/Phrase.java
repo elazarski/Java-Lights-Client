@@ -1,22 +1,8 @@
 package lightsclient;
 
 public class Phrase {
-	private int[] notes;
-
-	public Phrase(int[] indexes) {
-		notes = indexes;
-	}
-
-	public Phrase(int startIndex, int endIndex) {
-		notes = new int[endIndex - startIndex];
-
-		for (int i = 0; i < endIndex - startIndex; i++) {
-			notes[i] = startIndex + i;
-		}
-	}
-
-	public static Phrase[] generate(Event[] events) {
-		Phrase[] temp = new Phrase[events.length];
+	public static int[] generate(Event[] events) {
+		int[] temp = new int[events.length];
 
 		// get average time between events
 		double averageTime = 0;
@@ -30,7 +16,7 @@ public class Phrase {
 		System.out.println(averageTime);
 
 		// attempt splitting up by time between notes
-		boolean timeSplit = false;
+		// boolean timeSplit = false;
 		int startIndex = 0;
 		int currentPhrase = 0;
 		for (int i = 1; i < events.length; i++) {
@@ -38,40 +24,22 @@ public class Phrase {
 			// System.out.println(events[i].getTime() + "-" + events[i -
 			// 1].getTime() + "=" + timeDiff);
 			if (timeDiff > averageTime) {
-				timeSplit = true;
-				int endIndex = i;
-				temp[currentPhrase] = new Phrase(startIndex, endIndex);
-				System.out.println(startIndex + "->" + endIndex);
-				startIndex = i + 1;
+				// timeSplit = true;
+				// int endIndex = i - 1;
+				temp[currentPhrase] = startIndex;
+				// System.out.println(startIndex + "->" + endIndex);
+				startIndex = i;
 				currentPhrase++;
 			}
 		}
 
-		Phrase[] ret = new Phrase[currentPhrase + 1];
+		int[] ret = new int[currentPhrase + 1];
 		for (int i = 0; i < ret.length; i++) {
 			ret[i] = temp[i];
 		}
-		ret[currentPhrase] = new Phrase(startIndex, events.length);
-		System.out.println(startIndex + "->" + events.length);
+		ret[currentPhrase] = startIndex;
+		// System.out.println(startIndex + "->" + (events.length - 1));
 
 		return ret;
-	}
-
-	public void offset(int offset) {
-		for (int i = 0; i < notes.length; i++) {
-			notes[i] += offset;
-		}
-	}
-
-	public int length() {
-		return notes.length;
-	}
-
-	public int getNote(int index) {
-		if (index < notes.length) {
-			return notes[index];
-		}
-
-		return -1;
 	}
 }

@@ -10,7 +10,6 @@ public class Part {
 
 	private int channel;
 	private ArrayList<Event> notes;
-	private ArrayList<Long[]> outputTimes = new ArrayList<Long[]>();
 	private ArrayList<Long> partTimes = new ArrayList<Long>();
 	private ArrayList<Long> measureTimes = new ArrayList<Long>();
 
@@ -21,7 +20,7 @@ public class Part {
 	private int[] measureIndexes;
 
 	private ArrayList<Integer> previousNotes = new ArrayList<Integer>();
-	private ArrayList<Phrase> phrases = new ArrayList<Phrase>();
+	private ArrayList<Integer> phrases = new ArrayList<Integer>();
 
 	public Part(int channel, String[] lines) {
 		this.channel = channel;
@@ -172,9 +171,11 @@ public class Part {
 					events[j] = notes.get(beginIndex + j);
 				}
 
-				Phrase[] lPhrases = Phrase.generate(events);
+				int[] lPhrases = Phrase.generate(events);
 				for (int j = 0; j < lPhrases.length; j++) {
-					lPhrases[j].offset(beginIndex);
+					lPhrases[j] += beginIndex;
+
+					// lPhrases[j].offset(beginIndex);
 					phrases.add(lPhrases[j]);
 				}
 			}
