@@ -42,4 +42,12 @@ public class Phrase {
 
 		return ret;
 	}
+	
+	public static boolean similar(Event[] phrase, Event[] recentEvents) {
+		boolean ret = false;
+		
+		
+		
+		return ret;
+	}
 }
