@@ -21,7 +21,7 @@ public class Part {
 
 	private int[] partIndexes;
 	private int[] measureIndexes;
-	
+
 	private ArrayList<Integer> phrases = new ArrayList<Integer>();
 
 	private ArrayList<Event> previousCorrectNotes = new ArrayList<Event>();
@@ -192,11 +192,10 @@ public class Part {
 		currentPhrase = 0;
 		currentMeasure = 0;
 		currentPart = 0;
-		
-		
+
 		possibleEvent = 0;
 		possiblePhrase = 0;
-		
+
 		previousCorrectNotes = new ArrayList<Event>();
 		previousPossibleNotes = new ArrayList<Event>();
 
@@ -327,7 +326,7 @@ public class Part {
 				if (ev.possiblyIsDone()) {
 					// look to next possibleEvent
 					possibleEvent = index + i + 1;
-//					previousPossibleNotes.add(input);
+					// previousPossibleNotes.add(input);
 
 					return ev.getTime();
 				}
@@ -353,30 +352,30 @@ public class Part {
 		if (currentEvent >= nextPhrase) {
 			currentPhrase++;
 		}
-		
+
 		// check measure next
 		// get time
 		int nextMeasure = measureIndexes[currentMeasure + 1];
 		while (currentEvent >= nextMeasure) {
 			currentMeasure++;
-			
+
 			nextMeasure = measureIndexes[currentMeasure + 1];
 		}
-//		if (currentEvent >= nextMeasure) {
-//			currentMeasure++;
-//		}
+		// if (currentEvent >= nextMeasure) {
+		// currentMeasure++;
+		// }
 
 		// check parts last
 		// get time
 		int nextPart = partIndexes[currentMeasure + 1];
 		while (currentEvent >= nextPart) {
 			currentPart++;
-			
+
 			nextPart = partIndexes[currentPart];
 		}
-//		if (currentEvent >= nextPart) {
-//			currentPart++;
-//		}
+		// if (currentEvent >= nextPart) {
+		// currentPart++;
+		// }
 	}
 
 	private void findForwardMP() {
@@ -384,10 +383,10 @@ public class Part {
 		int phraseIndex = phrases.get(currentPhrase);
 		while (currentEvent > phraseIndex) {
 			currentPhrase++;
-			
+
 			phraseIndex = phrases.get(currentPhrase);
 		}
-		
+
 		// measures next
 		int measureIndex = measureIndexes[currentMeasure];
 		while (currentEvent >= measureIndex) {
@@ -410,10 +409,10 @@ public class Part {
 		int phraseIndex = phrases.get(currentPhrase);
 		while (currentEvent < phraseIndex) {
 			currentPhrase--;
-			
+
 			phraseIndex = phrases.get(currentPhrase);
 		}
-		
+
 		// measures next
 		int measureIndex = measureIndexes[currentMeasure];
 		while (currentEvent < measureIndex) {
@@ -443,9 +442,10 @@ public class Part {
 
 		// check to see if we are waiting for the start of a new part
 		// if new currentPart == next note
-//		if (partTimes.get(currentPart) == notes.get(currentEvent + 1).getTime()) {
-//			currentPart++;
-//		}
+		// if (partTimes.get(currentPart) == notes.get(currentEvent +
+		// 1).getTime()) {
+		// currentPart++;
+		// }
 		if (partIndexes[currentPart] == currentEvent + 1) {
 			currentPart++;
 		}

@@ -1,13 +1,10 @@
 package lightsclient;
 
-import java.sql.Time;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
-
-import com.ibm.icu.impl.duration.TimeUnit;
 
 import lightsclient.MyMessage.Type;
 
