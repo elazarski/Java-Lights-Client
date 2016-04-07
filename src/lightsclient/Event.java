@@ -93,4 +93,24 @@ public class Event {
 	public long getTime() {
 		return time;
 	}
+
+	public boolean equals(Event e) {
+		e.resetPossible();
+
+		for (int i = 0; i < notes.length; i++) {
+			if (!e.possiblyContains(notes[i])) {
+				e.resetPossible();
+				return false;
+			}
+		}
+
+		if (time != e.getTime()) {
+			return false;
+		}
+
+		e.resetPossible();
+
+		return true;
+	}
+
 }

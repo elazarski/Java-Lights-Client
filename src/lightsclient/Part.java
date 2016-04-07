@@ -24,7 +24,6 @@ public class Part {
 
 	private ArrayList<Integer> phrases = new ArrayList<Integer>();
 
-	private ArrayList<Event> previousCorrectNotes = new ArrayList<Event>();
 	private ArrayList<Event> previousPossibleNotes = new ArrayList<Event>();
 
 	public Part(int channel, String[] lines) {
@@ -196,7 +195,6 @@ public class Part {
 		possibleEvent = 0;
 		possiblePhrase = 0;
 
-		previousCorrectNotes = new ArrayList<Event>();
 		previousPossibleNotes = new ArrayList<Event>();
 
 		for (Event ev : notes) {
@@ -207,9 +205,11 @@ public class Part {
 	public boolean isNext(int input) {
 		// if we have had 4 possible notes in a row, move to that note
 		if (previousPossibleNotes.size() >= 4) {
-			System.out.println("Moving from " + currentEvent + " to " + possibleEvent);
-			currentEvent = possibleEvent;
-			previousCorrectNotes = new ArrayList<Event>();
+			return false;
+			// System.out.println("Moving from " + currentEvent + " to " +
+			// possibleEvent);
+			// currentEvent = possibleEvent;
+			// previousCorrectNotes = new ArrayList<Event>();
 		}
 
 		// ask current event if this is the correct input
@@ -222,12 +222,30 @@ public class Part {
 			if (ev.isDone()) {
 				currentEvent++;
 				nextMP();
+
+				// // check if recent notes are expected
+				// // get events for previous perfect phrases
+				// if (currentPhrase > 2) {
+				// referencePhrase = currentPhrase - 2;
+				// }
+				//
+				// Event[] lPhrases = new Event[(currentPhrase + 1) -
+				// referencePhrase];
+				// for (int i = 0; i < lPhrases.length; i++) {
+				// lPhrases[i] = notes.get(referencePhrase + i);
+				// }
+				//
+				// if (Phrase.similar(lPhrases, previousCorrectNotes.toArray(new
+				// Event[1]))) {
+				// System.out.println("Correct Phrase detected on channel " +
+				// channel);
+				// }
 			}
-
-			// set possibleEvent to currentEvent
+			//
+			// // set possibleEvent to currentEvent
 			possibleEvent = currentEvent;
-
-			// reset previous possible notes
+			//
+			// // reset previous possible notes
 			if (previousPossibleNotes.size() != 0) {
 				previousPossibleNotes = new ArrayList<Event>();
 			}

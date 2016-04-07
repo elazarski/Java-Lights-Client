@@ -13,7 +13,7 @@ public class Phrase {
 			t1 = t2;
 		}
 		averageTime = averageTime / (double) events.length;
-		System.out.println(averageTime);
+//		System.out.println(averageTime);
 
 		// attempt splitting up by time between notes
 		// boolean timeSplit = false;
@@ -43,9 +43,20 @@ public class Phrase {
 		return ret;
 	}
 
-	public static boolean similar(Event[] phrase, Event[] recentEvents) {
-		boolean ret = false;
+	public static boolean similar(Event[] phrases, Event[] recentEvents) {
+		int numBad = 0;
+		
+		System.out.println("phrases: " + phrases.length + ", recentEvents: " + recentEvents.length);
 
-		return ret;
+		for (int i = 0; i < recentEvents.length; i++) {
+			if (!recentEvents[i].equals(phrases[i])) {
+				numBad++;
+				if (numBad >= 4) {
+					return false;
+				}
+			}
+		}
+
+		return true;
 	}
 }
