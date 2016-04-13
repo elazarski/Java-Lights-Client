@@ -112,5 +112,9 @@ public class Event {
 
 		return true;
 	}
+	
+	public int[] getAllNotes() {
+		return notes;
+	}
 
 }

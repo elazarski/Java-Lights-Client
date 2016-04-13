@@ -66,7 +66,7 @@ public class MyReader {
 			} else if (fileName.contains("o")) {
 				// get channel
 				int channel = Integer.parseInt(fileName.substring(1));
-				OutputPart o = new OutputPart(channel, lines);
+				OutputPart o = new OutputPart(lines);
 				ret.addOutput(o);
 			} else {
 				// m or p

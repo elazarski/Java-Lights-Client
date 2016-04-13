@@ -149,17 +149,17 @@ public class MidiInterface {
 			}
 
 			// connect to input and output devices
-			for (MidiDevice current : inputDevices) {
-				if (current != null) {
-					current.open();
-				}
-			}
-
-			for (MidiDevice current : outputDevices) {
-				if (current != null) {
-					current.open();
-				}
-			}
+//			for (MidiDevice current : inputDevices) {
+//				if (current != null) {
+//					current.open();
+//				}
+//			}
+//
+//			for (MidiDevice current : outputDevices) {
+//				if (current != null) {
+//					current.open();
+//				}
+//			}
 			for (int i = 0; i < inputDevices.size(); i++) {
 				inputDevices.get(i).open();
 			}
@@ -225,8 +225,10 @@ public class MidiInterface {
 
 			// connect each outputPart to a Receiver
 			int numMIDIOutput = s.numMIDIOutput();
+			OutputPart[] outputParts = new OutputPart[numMIDIOutput];
 			for (int j = 0; j < numMIDIOutput; j++) {
-				s.getOutput(j).setOutput(outputReceivers.get(j));
+				outputParts[j] = s.getOutput(j);
+				outputParts[j].setOutput(outputReceivers.get(j));
 			}
 
 			// play song
@@ -250,9 +252,26 @@ public class MidiInterface {
 
 				if (playMessage != null) {
 					// System.out.println(playMessage.toString());
-					boolean partDone = parseMessage(playMessage);
+//					boolean partDone = parseMessage(playMessage);
+					boolean partDone = false;
 					int channel = playMessage.getChannel();
 
+					// parse message
+					switch(playMessage.getType()) {
+					case PART_DONE:
+						partDone = true;
+						break;
+					case TIME_UPDATE:
+						for (OutputPart current : outputParts) {
+							long currentTime = (long)playMessage.getData1();
+							current.checkToSend(currentTime, channel);
+						}
+						break;
+					default:
+						System.err.println("MESSAGE TYPE " + playMessage.getType() + " NOT IMPLEMENTED YET");
+						break;
+					}
+					
 					if (partDone) {
 						partsDone[channel] = partDone;
 					}
@@ -347,24 +366,24 @@ public class MidiInterface {
 	}
 
 	// parse message from play queue
-	private boolean parseMessage(MyMessage pm) {
-		boolean ret = false;
-
-		switch (pm.getType()) {
-		case TIME_UPDATE:
-
-			// check if tick is >= next output signal
-
-			break;
-		case PART_DONE:
-			ret = true;
-			break;
-		default:
-			break;
-		}
-
-		return ret;
-
-	}
+//	private boolean parseMessage(MyMessage pm) {
+//		boolean ret = false;
+//
+//		switch (pm.getType()) {
+//		case TIME_UPDATE:
+//			// update output parts
+//			for (OutputPart current : )
+//
+//			break;
+//		case PART_DONE:
+//			ret = true;
+//			break;
+//		default:
+//			break;
+//		}
+//
+//		return ret;
+//
+//	}
 
 }
