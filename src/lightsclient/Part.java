@@ -2,12 +2,10 @@ package lightsclient;
 
 import java.util.ArrayList;
 
-import org.eclipse.text.edits.DeleteEdit;
-
 public class Part {
 
 	private int currentEvent = 0;
-//	private int currentPhrase = 0;
+	// private int currentPhrase = 0;
 	private int currentMeasure = 0;
 	private int currentPart = 0;
 
@@ -17,12 +15,12 @@ public class Part {
 	private ArrayList<Long> measureTimes;
 
 	private int possibleEvent = 0;
-//	private int possiblePhrase = 0;
+	// private int possiblePhrase = 0;
 
 	private int[] partIndexes;
 	private int[] measureIndexes;
 
-//	private ArrayList<Integer> phrases = new ArrayList<Integer>();
+	// private ArrayList<Integer> phrases = new ArrayList<Integer>();
 
 	private ArrayList<Event> previousPossibleNotes = new ArrayList<Event>();
 
@@ -180,7 +178,7 @@ public class Part {
 					lPhrases[j] += beginIndex;
 
 					// lPhrases[j].offset(beginIndex);
-//					phrases.add(lPhrases[j]);
+					// phrases.add(lPhrases[j]);
 				}
 			}
 		}
@@ -188,12 +186,12 @@ public class Part {
 
 	public void reset() {
 		currentEvent = 0;
-//		currentPhrase = 0;
+		// currentPhrase = 0;
 		currentMeasure = 0;
 		currentPart = 0;
 
 		possibleEvent = 0;
-//		possiblePhrase = 0;
+		// possiblePhrase = 0;
 
 		previousPossibleNotes = new ArrayList<Event>();
 
@@ -367,10 +365,10 @@ public class Part {
 	// check if we have changed measures or parts
 	private void nextMP() {
 		// check phrases first
-//		int nextPhrase = phrases.get(currentPhrase + 1);
-//		if (currentEvent >= nextPhrase) {
-//			currentPhrase++;
-//		}
+		// int nextPhrase = phrases.get(currentPhrase + 1);
+		// if (currentEvent >= nextPhrase) {
+		// currentPhrase++;
+		// }
 
 		// check measure next
 		// get time
@@ -399,12 +397,12 @@ public class Part {
 
 	private void findForwardMP() {
 		// phrases first
-//		int phraseIndex = phrases.get(currentPhrase);
-//		while (currentEvent > phraseIndex) {
-//			currentPhrase++;
-//
-//			phraseIndex = phrases.get(currentPhrase);
-//		}
+		// int phraseIndex = phrases.get(currentPhrase);
+		// while (currentEvent > phraseIndex) {
+		// currentPhrase++;
+		//
+		// phraseIndex = phrases.get(currentPhrase);
+		// }
 
 		// measures next
 		int measureIndex = measureIndexes[currentMeasure];
@@ -425,12 +423,12 @@ public class Part {
 
 	private void findBackwardMP() {
 		// phrases first
-//		int phraseIndex = phrases.get(currentPhrase);
-//		while (currentEvent < phraseIndex) {
-//			currentPhrase--;
-//
-//			phraseIndex = phrases.get(currentPhrase);
-//		}
+		// int phraseIndex = phrases.get(currentPhrase);
+		// while (currentEvent < phraseIndex) {
+		// currentPhrase--;
+		//
+		// phraseIndex = phrases.get(currentPhrase);
+		// }
 
 		// measures next
 		int measureIndex = measureIndexes[currentMeasure];

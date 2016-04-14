@@ -63,15 +63,9 @@ public class Song {
 		return input.size();
 	}
 
-	// TODO: Figure out how I want to handle this exactly
 	// add output
 	public void addOutput(OutputPart o) {
 		output.add(o);
-
-		// add times to input parts
-		for (Part p : input) {
-
-		}
 	}
 
 	// get output
