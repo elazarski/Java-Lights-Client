@@ -1,6 +1,8 @@
 package lightsclient;
 
 import java.util.ArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiMessage;
@@ -9,13 +11,21 @@ import javax.sound.midi.ShortMessage;
 
 public class OutputPart {
 
-	int currentNote = 0;
-
+	private int channel;
+	private Receiver receiver;
+	
+	private int currentNote = 0;
 	private ArrayList<Event> notes;
-	private long[] inputTimes;
-	private Receiver output;
+	boolean done = false;
+	
+	private long[] currentInputTimes;
+	private long[] timesUntilNextEvent;
+	private boolean[] listen;
+	
+	private LinkedBlockingQueue<MyMessage> input;
+	
 
-	public OutputPart(String[] lines) {
+	public OutputPart(String[] lines, int channel) {
 		notes = new ArrayList<Event>(lines.length);
 
 		for (String line : lines) {
@@ -23,6 +33,8 @@ public class OutputPart {
 				notes.add(new Event(line));
 			}
 		}
+		
+		this.channel = channel;
 	}
 
 	public long[] getTimes() {
@@ -36,14 +48,20 @@ public class OutputPart {
 	}
 
 	public void setNumInput(int numInput) {
-		inputTimes = new long[numInput];
+		currentInputTimes = new long[numInput];
+		timesUntilNextEvent = new long[numInput];
+		
+		listen = new boolean[numInput];
+		for (int i = 0; i < numInput; i++) {
+			listen[i] = false;
+		}
 	}
 
 	/**
 	 * @return the output
 	 */
 	public Receiver getOutput() {
-		return output;
+		return receiver;
 	}
 
 	/**
@@ -51,7 +69,7 @@ public class OutputPart {
 	 *            the output to set
 	 */
 	public void setOutput(Receiver output) {
-		this.output = output;
+		this.receiver = output;
 
 		// output notes at time 0
 		if (notes.get(currentNote).getTime() == 0) {
@@ -72,16 +90,49 @@ public class OutputPart {
 		}
 	}
 
-	public void checkToSend(Long currentTime, int channel) {
-		inputTimes[channel] = currentTime;
-
+	private boolean ready() {
+		long noteTime = notes.get(currentNote).getTime();
+		for (long current : currentInputTimes) {
+			if (noteTime > current) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public int getChannel() {
+		return channel;
+	}
+	
+	public void play(LinkedBlockingQueue<MyMessage> input) {
+		this.input = input;
+		
+		while (!done) {
+			MyMessage message = null;
+			try {
+				message = input.poll(1, TimeUnit.MICROSECONDS);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			if (message != null) {
+				long partTime = (long)message.getData1();
+				int partChannel = message.getChannel();
+				currentInputTimes[partChannel] = partTime;
+				checkToSend();
+			}
+		}
+	}
+	
+	private void checkToSend() {
 		// send event if ready
 		while (ready()) {
 			Event currentEvent = notes.get(currentNote);
 			for (int note : currentEvent.getAllNotes()) {
 				try {
 					MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, note, 97);
-					output.send(message, -1);
+					receiver.send(message, -1);
 				} catch (InvalidMidiDataException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -89,15 +140,5 @@ public class OutputPart {
 			}
 			currentNote++;
 		}
-	}
-
-	private boolean ready() {
-		long noteTime = notes.get(currentNote).getTime();
-		for (long current : inputTimes) {
-			if (noteTime > current) {
-				return false;
-			}
-		}
-		return true;
 	}
 }

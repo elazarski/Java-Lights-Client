@@ -223,12 +223,31 @@ public class MidiInterface {
 				}
 			}
 
-			// connect each outputPart to a Receiver
+			// connect each outputPart to a Receiver and start their playThread
 			int numMIDIOutput = s.numMIDIOutput();
+			Thread[] outputThreads = new Thread[numMIDIOutput - 1];
+			ArrayList<LinkedBlockingQueue<MyMessage>> outputQueues = new ArrayList<LinkedBlockingQueue<MyMessage>>();
 			OutputPart[] outputParts = new OutputPart[numMIDIOutput];
 			for (int j = 0; j < numMIDIOutput; j++) {
-				outputParts[j] = s.getOutput(j);
-				outputParts[j].setOutput(outputReceivers.get(j));
+				OutputPart current = s.getOutput(j);
+				current.setOutput(outputReceivers.get(j));
+				outputParts[j] = current;
+				
+				// start thread if not -1
+				if (current.getChannel() != -1) {
+					LinkedBlockingQueue<MyMessage> tq = new LinkedBlockingQueue<MyMessage>();
+					outputQueues.add(tq);
+					Thread t = new Thread(new Runnable() {
+						
+						@Override
+						public void run() {
+							// TODO Auto-generated method stub
+							current.play(tq);
+						}
+					});
+					t.start();
+					outputThreads[j] = t;
+				}
 			}
 
 			// play song
@@ -262,10 +281,13 @@ public class MidiInterface {
 						partDone = true;
 						break;
 					case TIME_UPDATE:
-						for (OutputPart current : outputParts) {
-							long currentTime = (long)playMessage.getData1();
-							current.checkToSend(currentTime, channel);
+						for (LinkedBlockingQueue<MyMessage> current : outputQueues) {
+							current.offer(playMessage);
 						}
+//						for (OutputPart current : outputParts) {
+//							long currentTime = (long)playMessage.getData1();
+//							current.checkToSend(currentTime, channel);
+//						}
 						break;
 					default:
 						System.err.println("MESSAGE TYPE " + playMessage.getType() + " NOT IMPLEMENTED YET");
