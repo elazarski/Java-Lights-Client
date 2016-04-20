@@ -13,17 +13,14 @@ public class OutputPart {
 
 	private int channel;
 	private Receiver receiver;
-	
+
 	private int currentNote = 0;
 	private ArrayList<Event> notes;
 	boolean done = false;
-	
+
 	private long[] currentInputTimes;
-	private long[] timesUntilNextEvent;
+	private long[] nextInputTimes;
 	private boolean[] listen;
-	
-	private LinkedBlockingQueue<MyMessage> input;
-	
 
 	public OutputPart(String[] lines, int channel) {
 		notes = new ArrayList<Event>(lines.length);
@@ -33,7 +30,7 @@ public class OutputPart {
 				notes.add(new Event(line));
 			}
 		}
-		
+
 		this.channel = channel;
 	}
 
@@ -49,8 +46,8 @@ public class OutputPart {
 
 	public void setNumInput(int numInput) {
 		currentInputTimes = new long[numInput];
-		timesUntilNextEvent = new long[numInput];
-		
+		nextInputTimes = new long[numInput];
+
 		listen = new boolean[numInput];
 		for (int i = 0; i < numInput; i++) {
 			listen[i] = false;
@@ -99,32 +96,46 @@ public class OutputPart {
 		}
 		return true;
 	}
-	
+
 	public int getChannel() {
 		return channel;
 	}
-	
+
 	public void play(LinkedBlockingQueue<MyMessage> input) {
-		this.input = input;
-		
+		// this.input = input;
+
+		// System.out.println(Thread.currentThread().getName());
+
 		while (!done) {
 			MyMessage message = null;
 			try {
 				message = input.poll(1, TimeUnit.MICROSECONDS);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 			if (message != null) {
-				long partTime = (long)message.getData1();
+				// System.out.println("GOT MESSAGE");
+				long partTime = (long) message.getData1();
+				long nextTime = (long) message.getData1();
 				int partChannel = message.getChannel();
 				currentInputTimes[partChannel] = partTime;
+				nextInputTimes[partChannel] = nextTime;
+
+				// check if we should listen to this part for now
+				long timeDiff = nextTime - partTime;
+				if (timeDiff > 0 && timeDiff > 16000) {
+					// use 16000 for now
+					// this is approximately the time for a measure
+					// in book
+					listen[partChannel] = false;
+				}
+
 				checkToSend();
 			}
 		}
 	}
-	
+
 	private void checkToSend() {
 		// send event if ready
 		while (ready()) {
@@ -140,5 +151,9 @@ public class OutputPart {
 			}
 			currentNote++;
 		}
+	}
+
+	public void notify(MyMessage message) {
+
 	}
 }

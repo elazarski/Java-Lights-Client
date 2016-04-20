@@ -49,12 +49,16 @@ public class InputReceiver implements Receiver {
 					// part.getChannel());
 					int noteNum = sm.getData1();
 					if (part.isNext(noteNum)) {
-						sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), true));
+						sendData(
+								new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), part.getNextTime()));
 					} else {
 						Long time = part.isPossible(noteNum);
 
 						if (time != null) {
-							sendData(new MyMessage(part.getChannel(), Type.TIME_UPDATE, time, false));
+							// sendData(new MyMessage(part.getChannel(),
+							// Type.TIME_UPDATE, time, false));
+							System.out.println(
+									"working on new part, not sending message from channel: " + part.getChannel());
 						}
 					}
 				}
@@ -69,6 +73,7 @@ public class InputReceiver implements Receiver {
 	}
 
 	private void sendData(MyMessage data) {
+		System.out.println("Sending Data");
 		queue.offer(data);
 	}
 

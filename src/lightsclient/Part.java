@@ -44,6 +44,14 @@ public class Part {
 		return notes.get(currentEvent).getTime();
 	}
 
+	public long getNextTime() {
+		if (currentEvent < notes.size()) {
+			return notes.get(currentEvent + 1).getTime();
+		} else {
+			return 0;
+		}
+	}
+
 	public long getPartTime() {
 		return partTimes.get(currentPart);
 	}
@@ -201,7 +209,7 @@ public class Part {
 	}
 
 	public boolean isNext(int input) {
-		System.out.println("Got note " + input);
+		// System.out.println("Got note " + input);
 		// if we have had 4 possible notes in a row, move to that note
 		if (previousPossibleNotes.size() >= 4) {
 			return false;

@@ -66,11 +66,11 @@ public class MyReader {
 			} else if (fileName.contains("o")) {
 				// get channel
 				int channel = Integer.parseInt(fileName.substring(1));
-				
+
 				if (channel == -1) { // Phone output
-					
+
 				}
-				
+
 				OutputPart o = new OutputPart(lines, channel);
 				ret.addOutput(o);
 			} else {

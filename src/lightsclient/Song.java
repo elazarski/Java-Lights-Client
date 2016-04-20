@@ -41,6 +41,12 @@ public class Song {
 
 			p.process();
 		}
+
+		// get ouput parts ready
+		int numInput = input.size();
+		for (OutputPart op : output) {
+			op.setNumInput(numInput);
+		}
 	}
 
 	// add input
@@ -94,7 +100,6 @@ public class Song {
 	}
 
 	public int numMIDIOutput() {
-		// -1 because the last is the output for the phone
-		return output.size() - 1;
+		return output.size();
 	}
 }
