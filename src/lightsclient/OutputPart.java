@@ -18,8 +18,8 @@ public class OutputPart {
 	private ArrayList<Event> notes;
 	boolean done = false;
 
-	private long[] currentInputTimes;
-	private long[] nextInputTimes;
+	private double[] currentInputTimes;
+	private double[] nextInputTimes;
 	private boolean[] listen;
 
 	public OutputPart(String[] lines, int channel) {
@@ -34,8 +34,8 @@ public class OutputPart {
 		this.channel = channel;
 	}
 
-	public long[] getTimes() {
-		long[] ret = new long[notes.size()];
+	public double[] getTimes() {
+		double[] ret = new double[notes.size()];
 
 		for (int i = 0; i < notes.size(); i++) {
 			ret[i] = notes.get(i).getTime();
@@ -45,8 +45,8 @@ public class OutputPart {
 	}
 
 	public void setNumInput(int numInput) {
-		currentInputTimes = new long[numInput];
-		nextInputTimes = new long[numInput];
+		currentInputTimes = new double[numInput];
+		nextInputTimes = new double[numInput];
 
 		listen = new boolean[numInput];
 		for (int i = 0; i < numInput; i++) {
@@ -88,8 +88,8 @@ public class OutputPart {
 	}
 
 	private boolean ready() {
-		long noteTime = notes.get(currentNote).getTime();
-		for (long current : currentInputTimes) {
+		double noteTime = notes.get(currentNote).getTime();
+		for (double current : currentInputTimes) {
 			if (noteTime > current) {
 				return false;
 			}
@@ -113,26 +113,28 @@ public class OutputPart {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			
+			// check timing
+			long time = System.currentTimeMillis() % 1000;
 
 			if (message != null) {
 				// System.out.println("GOT MESSAGE");
-				long partTime = (long) message.getData1();
-				long nextTime = (long) message.getData1();
+				double partTime = (long) message.getData1();
+				double nextTime = (long) message.getData1();
 				int partChannel = message.getChannel();
 				currentInputTimes[partChannel] = partTime;
 				nextInputTimes[partChannel] = nextTime;
 
 				// check if we should listen to this part for now
-				long timeDiff = nextTime - partTime;
-				if (timeDiff > 0 && timeDiff > 16000) {
-					// use 16000 for now
-					// this is approximately the time for a measure
-					// in book
+				double timeDiff = nextTime - partTime;
+				if (timeDiff > 0 && timeDiff > 5) {
+					// 5 for temporary fixing with changing types
 					listen[partChannel] = false;
 				}
 
 				checkToSend();
 			}
+			
 		}
 	}
 

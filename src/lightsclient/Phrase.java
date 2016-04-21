@@ -6,9 +6,9 @@ public class Phrase {
 
 		// get average time between events
 		double averageTime = 0;
-		long t1 = events[0].getTime();
+		double t1 = events[0].getTime();
 		for (int i = 1; i < events.length; i++) {
-			long t2 = events[i].getTime();
+			double t2 = events[i].getTime();
 			averageTime += t2 - t1;
 			t1 = t2;
 		}
@@ -20,7 +20,7 @@ public class Phrase {
 		int startIndex = 0;
 		int currentPhrase = 0;
 		for (int i = 1; i < events.length; i++) {
-			long timeDiff = events[i].getTime() - events[i - 1].getTime();
+			double timeDiff = events[i].getTime() - events[i - 1].getTime();
 			// System.out.println(events[i].getTime() + "-" + events[i -
 			// 1].getTime() + "=" + timeDiff);
 			if (timeDiff > averageTime) {

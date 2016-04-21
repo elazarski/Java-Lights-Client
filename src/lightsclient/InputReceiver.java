@@ -39,6 +39,7 @@ public class InputReceiver implements Receiver {
 	@Override
 	public void send(MidiMessage message, long timeStamp) {
 		// check for note on before sending to threadFunc
+//		System.out.println(timeStamp + " " + System.nanoTime()/1000);
 		if (startPressed && !jam) {
 			if (message instanceof ShortMessage) {
 				ShortMessage sm = (ShortMessage) message;
@@ -52,7 +53,7 @@ public class InputReceiver implements Receiver {
 						sendData(
 								new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), part.getNextTime()));
 					} else {
-						Long time = part.isPossible(noteNum);
+						Double time = part.isPossible(noteNum);
 
 						if (time != null) {
 							// sendData(new MyMessage(part.getChannel(),
@@ -78,7 +79,7 @@ public class InputReceiver implements Receiver {
 	}
 
 	// notify with MyMessage
-	public Long notify(MyMessage message) {
+	public Double notify(MyMessage message) {
 		// System.out.println(Thread.currentThread().getName());
 
 		// parse message
@@ -108,7 +109,7 @@ public class InputReceiver implements Receiver {
 			break;
 		case TIME_UPDATE:
 			// figure out what to do based upon channel
-			Long newTime = null;
+			Double newTime = null;
 			switch (channel) {
 			case 2: // next part
 				System.out.println("Calling nextPart() from " + part.getChannel());
@@ -149,7 +150,7 @@ public class InputReceiver implements Receiver {
 		// }
 	}
 
-	public void changeTime(Long newTime) {
+	public void changeTime(double newTime) {
 		// if part time or measure time != new time, change part
 		if ((part.getPartTime() != newTime) || (part.getMeasureTime() != newTime)) {
 			part.changeTime(newTime);

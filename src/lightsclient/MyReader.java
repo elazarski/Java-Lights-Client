@@ -77,11 +77,11 @@ public class MyReader {
 				// m or p
 				if (fileName.equals("m")) {
 					// get times
-					ArrayList<Long> m = new ArrayList<Long>();
+					ArrayList<Double> m = new ArrayList<Double>();
 					for (String mLine : lines) {
 						if (!mLine.equals("")) {
 							String[] elements = mLine.split(" ");
-							m.add(Long.parseLong(elements[0]));
+							m.add(Double.parseDouble(elements[0]));
 						}
 					}
 
@@ -91,11 +91,11 @@ public class MyReader {
 					// p
 
 					// get times
-					ArrayList<Long> p = new ArrayList<Long>();
+					ArrayList<Double> p = new ArrayList<Double>();
 					for (String pLine : lines) {
 						if (!pLine.equals("")) {
 							String[] elements = pLine.split(" ");
-							p.add(Long.parseLong(elements[0]));
+							p.add(Double.parseDouble(elements[0]));
 						}
 					}
 

@@ -362,9 +362,9 @@ public class MidiInterface {
 					}
 
 					// forward message to InputReceivers
-					Long newTime = (long) -1;
+					Double newTime = (double) -1;
 					for (int j = 0; j < numInput; j++) {
-						Long partTime = inputReceivers.get(j).notify(controlMessage);
+						Double partTime = inputReceivers.get(j).notify(controlMessage);
 
 						if (partTime != null && partTime > newTime) {
 							newTime = partTime;

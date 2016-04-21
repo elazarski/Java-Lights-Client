@@ -2,14 +2,14 @@ package lightsclient;
 
 public class Event {
 	private int[] notes;
-	private long time;
+	private double time;
 	private int numInChord = 0;
 	private int possibleNumInChord = 0;
 
 	public Event(String line) {
 		String[] elements = line.split(" ");
 
-		time = Long.parseLong(elements[0]);
+		time = Double.parseDouble(elements[0]);
 
 		// get notes
 		notes = new int[elements.length - 1];
@@ -90,7 +90,7 @@ public class Event {
 		}
 	}
 
-	public long getTime() {
+	public double getTime() {
 		return time;
 	}
 

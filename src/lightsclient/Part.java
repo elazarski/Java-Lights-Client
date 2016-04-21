@@ -11,8 +11,8 @@ public class Part {
 
 	private int channel;
 	private ArrayList<Event> notes;
-	private ArrayList<Long> partTimes;
-	private ArrayList<Long> measureTimes;
+	private ArrayList<Double> partTimes;
+	private ArrayList<Double> measureTimes;
 
 	private int possibleEvent = 0;
 	// private int possiblePhrase = 0;
@@ -40,11 +40,11 @@ public class Part {
 		return channel;
 	}
 
-	public long getTime() {
+	public double getTime() {
 		return notes.get(currentEvent).getTime();
 	}
 
-	public long getNextTime() {
+	public double getNextTime() {
 		if (currentEvent < notes.size()) {
 			return notes.get(currentEvent + 1).getTime();
 		} else {
@@ -52,11 +52,11 @@ public class Part {
 		}
 	}
 
-	public long getPartTime() {
+	public double getPartTime() {
 		return partTimes.get(currentPart);
 	}
 
-	public long getMeasureTime() {
+	public double getMeasureTime() {
 		return measureTimes.get(currentMeasure);
 	}
 
@@ -69,14 +69,14 @@ public class Part {
 	// outputTimes.add(temp);
 	// }
 
-	public void addMeasures(ArrayList<Long> measures) {
+	public void addMeasures(ArrayList<Double> measures) {
 		measureTimes = measures;
 
 		// populate measureIndexes
 		measureIndexes = new int[measureTimes.size()];
-		long measureTime = measureTimes.get(currentMeasure);
+		double measureTime = measureTimes.get(currentMeasure);
 		for (int i = 0; i < notes.size(); i++) {
-			long eventTime = notes.get(i).getTime();
+			double eventTime = notes.get(i).getTime();
 
 			// check if current time is past the measure marker
 			if (eventTime >= measureTime) {
@@ -121,14 +121,14 @@ public class Part {
 		currentMeasure = 0;
 	}
 
-	public void addParts(ArrayList<Long> parts) {
+	public void addParts(ArrayList<Double> parts) {
 		partTimes = parts;
 
 		// populate partIndexes
 		partIndexes = new int[partTimes.size()];
-		long partTime = partTimes.get(currentPart);
+		double partTime = partTimes.get(currentPart);
 		for (int i = 0; i < notes.size(); i++) {
-			long eventTime = notes.get(i).getTime();
+			double eventTime = notes.get(i).getTime();
 
 			if (eventTime >= partTime) {
 				partIndexes[currentPart] = i;
@@ -261,7 +261,7 @@ public class Part {
 		return correct;
 	}
 
-	public Long isPossible(int input) {
+	public Double isPossible(int input) {
 		// make sure that we aren't already looking at a possible new place
 		if (possibleEvent != currentEvent) {
 			Event ev = notes.get(possibleEvent);
@@ -296,7 +296,7 @@ public class Part {
 		}
 
 		// check next handful of notes
-		Long time = possibleEvent(input, currentEvent);
+		Double time = possibleEvent(input, currentEvent);
 		if (time != null) {
 			System.out.println("Possible new note on channel " + channel);
 			previousPossibleNotes.add(notes.get(possibleEvent));
@@ -337,7 +337,7 @@ public class Part {
 		return null;
 	}
 
-	private Long possibleEvent(int input, int index) {
+	private Double possibleEvent(int input, int index) {
 		// check next handful of events
 		for (int i = 1; i < 7; i++) {
 			if ((index + i) > notes.size()) {
@@ -455,7 +455,7 @@ public class Part {
 		}
 	}
 
-	public Long nextPart() {
+	public Double nextPart() {
 		// make sure we are not out of parts
 		if (currentPart == partTimes.size()) {
 			return null;
@@ -476,7 +476,7 @@ public class Part {
 		}
 
 		// find new currentNote and currentMeasure
-		long partTIme = partTimes.get(currentPart);
+		double partTIme = partTimes.get(currentPart);
 
 		// measures first
 		while (measureTimes.get(currentMeasure) < partTIme) {
@@ -494,7 +494,7 @@ public class Part {
 		return partTimes.get(currentPart);
 	}
 
-	public Long nextMeasure() {
+	public Double nextMeasure() {
 		// make sure we are not out of measures
 		if (currentMeasure == measureTimes.size()) {
 			return null;
@@ -511,11 +511,11 @@ public class Part {
 		}
 
 		// find new currentNote and currentPart
-		long measureTime = measureTimes.get(currentMeasure);
+		double measureTime = measureTimes.get(currentMeasure);
 
 		// part first
 		// check if we even have to move
-		long nextPart = partTimes.get(currentPart + 1);
+		double nextPart = partTimes.get(currentPart + 1);
 		if (nextPart <= measureTime) {
 			while (partTimes.get(currentPart) < measureTime) {
 				currentPart++;
@@ -533,18 +533,18 @@ public class Part {
 		return measureTimes.get(currentMeasure);
 	}
 
-	public Long previousPart() {
+	public Double previousPart() {
 		// make sure we are not at the beginning of the song still
 		if (currentPart == 0) {
 			currentMeasure = 0;
 			currentEvent = 0;
-			return new Long(0);
+			return new Double(0);
 		}
 
 		currentPart--;
 
 		// find new currentNote and currentMeasure
-		long partTime = partTimes.get(currentPart);
+		double partTime = partTimes.get(currentPart);
 
 		// measures first
 		while (measureTimes.get(currentMeasure - 1) > partTime) {
@@ -559,18 +559,18 @@ public class Part {
 		return partTimes.get(currentPart);
 	}
 
-	public Long previousMeasure() {
+	public Double previousMeasure() {
 		// make sure we are not at the beginning of the song still
 		if (currentMeasure == 0) {
 			currentPart = 0;
 			currentEvent = 0;
-			return new Long(0);
+			return new Double(0);
 		}
 
 		currentMeasure--;
 
 		// find new currentNote and currentPart
-		long measureTime = measureTimes.get(currentMeasure);
+		double measureTime = measureTimes.get(currentMeasure);
 
 		// check if even necessary for part
 		if (partTimes.get(currentPart - 1) > measureTime) {
@@ -588,7 +588,7 @@ public class Part {
 		return measureTimes.get(currentMeasure);
 	}
 
-	public void changeTime(long newTime) {
+	public void changeTime(double newTime) {
 		if (newTime > getTime()) {
 			// if we are behind, find new note
 			while (getTime() < newTime) {
