@@ -39,7 +39,7 @@ public class InputReceiver implements Receiver {
 	@Override
 	public void send(MidiMessage message, long timeStamp) {
 		// check for note on before sending to threadFunc
-//		System.out.println(timeStamp + " " + System.nanoTime()/1000);
+		// System.out.println(timeStamp + " " + System.nanoTime()/1000);
 		if (startPressed && !jam) {
 			if (message instanceof ShortMessage) {
 				ShortMessage sm = (ShortMessage) message;

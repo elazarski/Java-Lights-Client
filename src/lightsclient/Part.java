@@ -60,15 +60,6 @@ public class Part {
 		return measureTimes.get(currentMeasure);
 	}
 
-	// public void addOutputTimes(long[] p) {
-	// Long[] temp = new Long[p.length];
-	// for (int i = 0; i < p.length; i++) {
-	// temp[i] = p[i];
-	// }
-	//
-	// outputTimes.add(temp);
-	// }
-
 	public void addMeasures(ArrayList<Double> measures) {
 		measureTimes = measures;
 
@@ -476,16 +467,16 @@ public class Part {
 		}
 
 		// find new currentNote and currentMeasure
-		double partTIme = partTimes.get(currentPart);
+		double partTime = partTimes.get(currentPart);
 
 		// measures first
-		while (measureTimes.get(currentMeasure) < partTIme) {
+		while (measureTimes.get(currentMeasure) < partTime) {
 			currentMeasure++;
 		}
 
 		System.out.print(currentMeasure + ", Event " + currentEvent + " -> ");
 		// note
-		while (notes.get(currentEvent).getTime() < partTIme) {
+		while (notes.get(currentEvent).getTime() < partTime) {
 			currentEvent++;
 		}
 

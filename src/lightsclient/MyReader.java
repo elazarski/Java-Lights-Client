@@ -108,7 +108,7 @@ public class MyReader {
 		br.close();
 		tarInput.close();
 		// return song that we have built
-		ret.done();
+		ret.process();
 		return ret;
 	}
 

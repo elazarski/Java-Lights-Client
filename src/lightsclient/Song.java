@@ -27,7 +27,7 @@ public class Song {
 
 	// give parts what they need
 	// output times, measures, parts, etc
-	public void done() {
+	public void process() {
 
 		// give parts measures, parts, and output times
 		for (Part p : input) {
@@ -46,6 +46,15 @@ public class Song {
 		int numInput = input.size();
 		for (OutputPart op : output) {
 			op.setNumInput(numInput);
+		}
+	}
+
+	public void reset() {
+		for (Part p : input) {
+			p.reset();
+		}
+		for (OutputPart op : output) {
+			op.reset();
 		}
 	}
 

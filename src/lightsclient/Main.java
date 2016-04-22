@@ -228,6 +228,11 @@ public class Main {
 			}
 		}
 
+		// kill play thread if running
+		if (playThread != null) {
+			playThread.stop();
+		}
+
 	}
 
 	// convert String[] to byte[]

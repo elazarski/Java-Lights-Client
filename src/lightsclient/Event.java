@@ -3,6 +3,7 @@ package lightsclient;
 public class Event {
 	private int[] notes;
 	private double time;
+
 	private int numInChord = 0;
 	private int possibleNumInChord = 0;
 

@@ -16,12 +16,15 @@ import lightsclient.MyMessage.Type;
 public class MidiInterface {
 
 	private MidiDevice.Info[] infos;
+
 	private ArrayList<MidiDevice> inputDevices;
 	private ArrayList<Transmitter> inputTransmitters;
 	private ArrayList<InputReceiver> inputReceivers;
+
 	private Transmitter controlTransmitter;
 	private MidiDevice controlDevice;
 	private ControlReceiver controlReceiver;
+
 	private ArrayList<MidiDevice> outputDevices;
 	private ArrayList<Receiver> outputReceivers;
 
@@ -94,9 +97,10 @@ public class MidiInterface {
 
 			// set sizes for MIDI I/O ArrayLists
 			int maxInputChannel = selection.getMaxInputChannel();
-			int maxOutputChannel = selection.getMaxOutputChannel();
 			inputDevices = new ArrayList<MidiDevice>(maxInputChannel);
 			inputTransmitters = new ArrayList<Transmitter>(maxInputChannel);
+
+			int maxOutputChannel = selection.getMaxOutputChannel();
 			outputDevices = new ArrayList<MidiDevice>(maxOutputChannel);
 			outputReceivers = new ArrayList<Receiver>(maxOutputChannel);
 
@@ -105,6 +109,7 @@ public class MidiInterface {
 				inputTransmitters.add(null);
 				inputReceivers.add(null);
 			}
+
 			for (int i = 0; i < maxOutputChannel; i++) {
 				outputDevices.add(null);
 				outputReceivers.add(null);
@@ -202,10 +207,7 @@ public class MidiInterface {
 				e1.printStackTrace();
 			}
 
-			// TODO: update main, which will update UI
-			// queue.offer(new byte[] {0x1});
-			// queue.offer(s.toString().getBytes());
-
+			// queue used to listen to input receivers. only incoming messages
 			LinkedBlockingQueue<MyMessage> playQueue = new LinkedBlockingQueue<MyMessage>();
 
 			// create InputReceiver objects for each required input
@@ -255,12 +257,18 @@ public class MidiInterface {
 					currentOutputReceiver++;
 				} else {
 					// send to TCP Server thread
-
+					System.out.println("Phone output not implemented yet");
 				}
 			}
 
 			// play song
+			double partTimes[] = new double[numInput];
+			Arrays.fill(partTimes, 0);
+			boolean listenForTime[] = new boolean[numInput];
+			Arrays.fill(listenForTime, true);
+			double timeMultiplier = 1;
 			boolean songDone = false;
+			long currentSystemTime = System.currentTimeMillis();
 			while (!songDone) {
 
 				// check queues for messages
@@ -290,9 +298,24 @@ public class MidiInterface {
 						partDone = true;
 						break;
 					case TIME_UPDATE:
+						// process message
+						listenForTime[channel] = true;
+
+						double currentPartTime = (Double) playMessage.getData1();
+						double nextPartTime = (Double) playMessage.getData2();
+
+						// get difference in time between currentPartTime and
+						// the last time we got an update from this part
+						double timeDiff = currentPartTime - partTimes[channel];
+
+						// double timeDiff = nextPartTime - partTimes[channel];
+						// if (timeDiff > 4 * timeMultiplier) {
+						// listenForTime[channel] = false;
+						// }
+
 						for (LinkedBlockingQueue<MyMessage> current : outputQueues) {
 							current.offer(playMessage);
-							System.out.println("here");
+							// System.out.println("here");
 						}
 						// for (OutputPart current : outputParts) {
 						// long currentTime = (long)playMessage.getData1();
@@ -338,6 +361,9 @@ public class MidiInterface {
 						}
 
 						songDone = true;
+						for (int j = 0; j < setlist.getNumSongs(); j++) {
+							setlist.getSong(j).reset();
+						}
 						i = setlist.getNumSongs() + 1;
 						break;
 					default:
@@ -356,6 +382,10 @@ public class MidiInterface {
 							InputReceiver current = inputReceivers.get(j);
 							current.notify(controlMessage);
 						}
+
+						// be ready to restart current song
+						s.reset();
+						i--;
 
 						// exit while loop
 						break;
@@ -388,6 +418,9 @@ public class MidiInterface {
 					// }
 					// }
 				}
+
+				// check partTimes to determine time multiplier
+
 			}
 
 			// close each receiver now that this song is done

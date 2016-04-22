@@ -77,7 +77,7 @@ public class OutputPart {
 			for (int note : currentEvent.getAllNotes()) {
 				try {
 					MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, note, 97);
-					output.send(message, -1);
+					output.send(message, System.nanoTime());
 				} catch (InvalidMidiDataException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -97,6 +97,15 @@ public class OutputPart {
 		return true;
 	}
 
+	public void reset() {
+		currentNote = 0;
+		done = false;
+
+		currentInputTimes = new double[currentInputTimes.length];
+		nextInputTimes = new double[nextInputTimes.length];
+		listen = new boolean[listen.length];
+	}
+
 	public int getChannel() {
 		return channel;
 	}
@@ -113,15 +122,16 @@ public class OutputPart {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
+
 			// check timing
-			long time = System.currentTimeMillis() % 1000;
+			// long time = System.currentTimeMillis() % 1000;
 
 			if (message != null) {
 				// System.out.println("GOT MESSAGE");
-				double partTime = (long) message.getData1();
-				double nextTime = (long) message.getData1();
+				double partTime = (Double) message.getData1();
+				double nextTime = (Double) message.getData1();
 				int partChannel = message.getChannel();
+
 				currentInputTimes[partChannel] = partTime;
 				nextInputTimes[partChannel] = nextTime;
 
@@ -134,7 +144,7 @@ public class OutputPart {
 
 				checkToSend();
 			}
-			
+
 		}
 	}
 
@@ -145,7 +155,7 @@ public class OutputPart {
 			for (int note : currentEvent.getAllNotes()) {
 				try {
 					MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, note, 97);
-					receiver.send(message, -1);
+					receiver.send(message, System.nanoTime());
 				} catch (InvalidMidiDataException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -156,6 +166,6 @@ public class OutputPart {
 	}
 
 	public void notify(MyMessage message) {
-
+		
 	}
 }
