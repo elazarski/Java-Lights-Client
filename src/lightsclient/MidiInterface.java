@@ -11,6 +11,8 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.Transmitter;
 
+import org.omg.CORBA.TIMEOUT;
+
 import lightsclient.MyMessage.Type;
 
 public class MidiInterface {
@@ -262,14 +264,34 @@ public class MidiInterface {
 			}
 
 			// play song
-			double partTimes[] = new double[numInput];
-			Arrays.fill(partTimes, 0);
-			boolean listenForTime[] = new boolean[numInput];
-			Arrays.fill(listenForTime, true);
-			double timeMultiplier = 1;
+			// measure all times in units of SECONDS
 			boolean songDone = false;
-			long currentSystemTime = System.currentTimeMillis();
+			double partSongTimes[] = new double[numInput];
+			Arrays.fill(partSongTimes, 0);
+			double partSystemTimes[] = new double[numInput];
+			Arrays.fill(partSystemTimes, -1);
+			boolean listenForTime[] = new boolean[numInput];
+			Arrays.fill(listenForTime, false);
+			double currentSongTime = 0;
+			double timeMultiplier = 1;
+			double partTimeMultipliers[] = new double[numInput];
+			Arrays.fill(partTimeMultipliers, 1);
+			double startTime = System.currentTimeMillis() / 1000;
+			double previousSystemTime = startTime;
 			while (!songDone) {
+
+				// clock
+				double currentSystemTime = (double) System.currentTimeMillis() / 1000 - startTime;
+				double systemTimeDifference = currentSystemTime - previousSystemTime;
+				currentSongTime += systemTimeDifference * timeMultiplier;
+
+				// update output parts if necessary
+				if (systemTimeDifference > 0.01) {
+					MyMessage outputMessage = new MyMessage(Type.TIME_UPDATE, currentSongTime);
+					for (LinkedBlockingQueue<MyMessage> c : outputQueues) {
+						c.offer(outputMessage);
+					}
+				}
 
 				// check queues for messages
 				MyMessage playMessage = null;
@@ -301,22 +323,68 @@ public class MidiInterface {
 						// process message
 						listenForTime[channel] = true;
 
-						double currentPartTime = (Double) playMessage.getData1();
-						double nextPartTime = (Double) playMessage.getData2();
+						double previousPartSongTime = partSongTimes[channel];
+						double previousPartSystemTime = partSystemTimes[channel];
+						double currentPartSongTime = (Double) playMessage.getData1();
+						double nextPartSongTime = (Double) playMessage.getData2();
 
-						// get difference in time between currentPartTime and
-						// the last time we got an update from this part
-						double timeDiff = currentPartTime - partTimes[channel];
+						double partSongTimeDifference = currentPartSongTime - previousPartSongTime;
+						double partSystemTimeDifference = currentSystemTime - previousPartSystemTime;
+
+						double currentPartTimeMultiplier = partSystemTimeDifference / partSongTimeDifference;
+
+						partTimeMultipliers[channel] = currentPartTimeMultiplier;
+
+						// get average of time multipliers and set that to the
+						// official time multiplier
+						double total = 0;
+						double numListen = 0;
+						for (int j = 0; j < numInput; j++) {
+							if (listenForTime[j]) {
+								total += partTimeMultipliers[j];
+								numListen++;
+							}
+						}
+
+						timeMultiplier = total / numListen;
+
+						// check to see if we should listen for this one when it
+						// comes time to calculate next times again
+						double timeUntilNextEvent = nextPartSongTime - currentPartSongTime;
+						if (timeUntilNextEvent > 10) {
+							listenForTime[channel] = false;
+						}
+
+						// double previousPartTime = partTimes[channel];
+						// double currentPartTime = (Double)
+						// playMessage.getData1();
+						// double nextPartTime = (Double)
+						// playMessage.getData2();
+
+						//
+						// double currentPartTime = (Double)
+						// playMessage.getData1();
+						// double nextPartTime = (Double)
+						// playMessage.getData2();
+						//
+						// // get difference in time between currentPartTime and
+						// // the last time we got an update from this part
+						// double timeDiff = currentPartTime -
+						// partTimes[channel];
+
+						// determine multiplier based upon timeDiff
 
 						// double timeDiff = nextPartTime - partTimes[channel];
-						// if (timeDiff > 4 * timeMultiplier) {
+						// use what the song originally expected 2 seconds to be
+						// if (timeDiff > (2 * timeMultiplier)) {
 						// listenForTime[channel] = false;
 						// }
 
-						for (LinkedBlockingQueue<MyMessage> current : outputQueues) {
-							current.offer(playMessage);
-							// System.out.println("here");
-						}
+						// for (LinkedBlockingQueue<MyMessage> current :
+						// outputQueues) {
+						// current.offer(playMessage);
+						// // System.out.println("here");
+						// }
 						// for (OutputPart current : outputParts) {
 						// long currentTime = (long)playMessage.getData1();
 						// current.checkToSend(currentTime, channel);
@@ -419,8 +487,11 @@ public class MidiInterface {
 					// }
 				}
 
-				// check partTimes to determine time multiplier
-
+				// // clock
+				// double timeFromStart =
+				// ((double)System.currentTimeMillis()/1000) - startTime;
+				//
+				// currentSongTime = timeFromStart * timeMultiplier;
 			}
 
 			// close each receiver now that this song is done
