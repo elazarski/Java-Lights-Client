@@ -16,11 +16,9 @@ public class OutputPart {
 
 	private int currentNote = 0;
 	private ArrayList<Event> notes;
-	boolean done = false;
+	private boolean done = false;
 
-	private double[] currentInputTimes;
-	private double[] nextInputTimes;
-	private boolean[] listen;
+	private float songTime;
 
 	public OutputPart(String[] lines, int channel) {
 		notes = new ArrayList<Event>(lines.length);
@@ -34,24 +32,14 @@ public class OutputPart {
 		this.channel = channel;
 	}
 
-	public double[] getTimes() {
-		double[] ret = new double[notes.size()];
+	public float[] getTimes() {
+		float[] ret = new float[notes.size()];
 
 		for (int i = 0; i < notes.size(); i++) {
 			ret[i] = notes.get(i).getTime();
 		}
 
 		return ret;
-	}
-
-	public void setNumInput(int numInput) {
-		currentInputTimes = new double[numInput];
-		nextInputTimes = new double[numInput];
-
-		listen = new boolean[numInput];
-		for (int i = 0; i < numInput; i++) {
-			listen[i] = false;
-		}
 	}
 
 	/**
@@ -69,15 +57,32 @@ public class OutputPart {
 		this.receiver = output;
 
 		// output notes at time 0
+		// if (notes.get(currentNote).getTime() == 0) {
+		// Event currentEvent = notes.get(currentNote);
+		// // construct MIDI message
+		// // MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, ,
+		// // 97);
+		// for (int note : currentEvent.getAllNotes()) {
+		// try {
+		// MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, note,
+		// 97);
+		// output.send(message, System.nanoTime());
+		// } catch (InvalidMidiDataException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
+		// }
+		// }
+		// currentNote++;
+		// }
+	}
+
+	public void outputFirstEvents() {
 		if (notes.get(currentNote).getTime() == 0) {
 			Event currentEvent = notes.get(currentNote);
-			// construct MIDI message
-			// MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, ,
-			// 97);
 			for (int note : currentEvent.getAllNotes()) {
 				try {
 					MidiMessage message = new ShortMessage(ShortMessage.NOTE_ON, 0, note, 97);
-					output.send(message, System.nanoTime());
+					receiver.send(message, System.nanoTime());
 				} catch (InvalidMidiDataException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -88,22 +93,16 @@ public class OutputPart {
 	}
 
 	private boolean ready() {
-		double noteTime = notes.get(currentNote).getTime();
-		for (double current : currentInputTimes) {
-			if (noteTime > current) {
-				return false;
-			}
+		double currentEventTime = notes.get(currentNote).getTime();
+		if (songTime >= currentEventTime) {
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	public void reset() {
 		currentNote = 0;
 		done = false;
-
-		currentInputTimes = new double[currentInputTimes.length];
-		nextInputTimes = new double[nextInputTimes.length];
-		listen = new boolean[listen.length];
 	}
 
 	public int getChannel() {
@@ -127,28 +126,39 @@ public class OutputPart {
 			// long time = System.currentTimeMillis() % 1000;
 
 			if (message != null) {
-				// System.out.println("GOT MESSAGE");
-				double partTime = (Double) message.getData1();
-				double nextTime = (Double) message.getData1();
-				int partChannel = message.getChannel();
+				System.out.println("GOT MESSAGE");
+				// check message type
+				switch (message.getType()) {
+				case TIME_UPDATE:
+					songTime = (float) message.getData1();
 
-				currentInputTimes[partChannel] = partTime;
-				nextInputTimes[partChannel] = nextTime;
-
-				// check if we should listen to this part for now
-				double timeDiff = nextTime - partTime;
-				if (timeDiff > 0 && timeDiff > 5) {
-					// 5 for temporary fixing with changing types
-					listen[partChannel] = false;
+					sendIfReady();
+					break;
+				default:
+					System.err.println(message.toString() + " not implemented yet in output part!");
+					break;
 				}
+				// System.out.println("GOT MESSAGE");
+				// double partTime = (Double) message.getData1();
+				// double nextTime = (Double) message.getData1();
+				// int partChannel = message.getChannel();
+				//
+				// currentInputTimes[partChannel] = partTime;
+				// nextInputTimes[partChannel] = nextTime;
+				//
+				// // check if we should listen to this part for now
+				// double timeDiff = nextTime - partTime;
+				// if (timeDiff > 0 && timeDiff > 5) {
+				// // 5 for temporary fixing with changing types
+				// listen[partChannel] = false;
+				// }
 
-				checkToSend();
 			}
 
 		}
 	}
 
-	private void checkToSend() {
+	private void sendIfReady() {
 		// send event if ready
 		while (ready()) {
 			Event currentEvent = notes.get(currentNote);
@@ -163,9 +173,13 @@ public class OutputPart {
 			}
 			currentNote++;
 		}
+
+		if (currentNote >= notes.size()) {
+			done = true;
+		}
 	}
 
 	public void notify(MyMessage message) {
-		
+
 	}
 }

@@ -2,7 +2,7 @@ package lightsclient;
 
 public class Event {
 	private int[] notes;
-	private double time;
+	private float time;
 
 	private int numInChord = 0;
 	private int possibleNumInChord = 0;
@@ -10,7 +10,7 @@ public class Event {
 	public Event(String line) {
 		String[] elements = line.split(" ");
 
-		time = Double.parseDouble(elements[0]);
+		time = Float.parseFloat(elements[0]);
 
 		// get notes
 		notes = new int[elements.length - 1];
@@ -91,7 +91,7 @@ public class Event {
 		}
 	}
 
-	public double getTime() {
+	public float getTime() {
 		return time;
 	}
 

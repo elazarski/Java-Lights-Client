@@ -53,7 +53,7 @@ public class InputReceiver implements Receiver {
 						sendData(
 								new MyMessage(part.getChannel(), Type.TIME_UPDATE, part.getTime(), part.getNextTime()));
 					} else {
-						Double time = part.isPossible(noteNum);
+						Float time = part.isPossible(noteNum);
 
 						if (time != null) {
 							// sendData(new MyMessage(part.getChannel(),
@@ -74,12 +74,11 @@ public class InputReceiver implements Receiver {
 	}
 
 	private void sendData(MyMessage data) {
-		System.out.println("Sending Data");
 		queue.offer(data);
 	}
 
 	// notify with MyMessage
-	public Double notify(MyMessage message) {
+	public Float notify(MyMessage message) {
 		// System.out.println(Thread.currentThread().getName());
 
 		// parse message
@@ -109,7 +108,7 @@ public class InputReceiver implements Receiver {
 			break;
 		case TIME_UPDATE:
 			// figure out what to do based upon channel
-			Double newTime = null;
+			Float newTime = null;
 			switch (channel) {
 			case 2: // next part
 				System.out.println("Calling nextPart() from " + part.getChannel());
@@ -150,7 +149,7 @@ public class InputReceiver implements Receiver {
 		// }
 	}
 
-	public void changeTime(double newTime) {
+	public void changeTime(float newTime) {
 		// if part time or measure time != new time, change part
 		if ((part.getPartTime() != newTime) || (part.getMeasureTime() != newTime)) {
 			part.changeTime(newTime);
