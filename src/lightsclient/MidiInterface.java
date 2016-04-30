@@ -274,14 +274,16 @@ public class MidiInterface {
 			float timeMultiplier = 1;
 			float partTimeMultipliers[] = new float[numInput];
 			Arrays.fill(partTimeMultipliers, 1);
+			boolean gotMessage = false;
 
 			// start song if no controller, otherwise wait for controller
 			float startTime = 0;
 			float previousSystemTime = 0;
+			float lastUpdate = 0;
 			boolean started = false;
 			if (controlReceiver == null) {
-				startTime = System.currentTimeMillis() / 1000;
-				previousSystemTime = startTime;
+				startTime = (float) System.currentTimeMillis() / 1000;
+//				previousSystemTime = startTime;
 				started = true;
 
 				// alert inputReceivers to listen
@@ -302,18 +304,29 @@ public class MidiInterface {
 				// clock
 				float currentSystemTime = 0;
 				if (started) {
-					currentSystemTime = System.currentTimeMillis() / 1000 - startTime;
-					float systemTimeDifference = currentSystemTime - previousSystemTime;
-					currentSongTime += systemTimeDifference * timeMultiplier;
+					currentSystemTime = (float) System.currentTimeMillis() / 1000 - startTime;
+					float systemTimeDifference = currentSystemTime;
+					if (previousSystemTime != 0) {
+						System.out.println("A");
+						systemTimeDifference = currentSystemTime - previousSystemTime;
+					}
+					
+					if ((systemTimeDifference * timeMultiplier) > 1.5e-7) {
+						currentSongTime += systemTimeDifference * timeMultiplier;
+						System.out.println("here");
+					}
+
+					float timeSinceLastUpdate = currentSystemTime - lastUpdate;
 
 					// update output parts if necessary
-					if (systemTimeDifference > 0.01) {
-						System.out.println("a");
+					if (timeSinceLastUpdate > 0.01) {
 						MyMessage outputMessage = new MyMessage(Type.TIME_UPDATE, currentSongTime);
 						for (LinkedBlockingQueue<MyMessage> c : outputQueues) {
 							c.offer(outputMessage);
 						}
 					}
+
+					System.out.println(currentSystemTime + "=>" + currentSongTime);
 				}
 
 				// check queues for messages
@@ -322,9 +335,9 @@ public class MidiInterface {
 				MyMessage controlMessage = null;
 
 				try {
-					playMessage = playQueue.poll(1, TimeUnit.MICROSECONDS);
-					mainMessage = inQueue.poll(1, TimeUnit.MICROSECONDS);
-					controlMessage = controlQueue.poll(1, TimeUnit.MICROSECONDS);
+					playMessage = playQueue.poll(100, TimeUnit.MILLISECONDS);
+					mainMessage = inQueue.poll(100, TimeUnit.MILLISECONDS);
+					controlMessage = controlQueue.poll(100, TimeUnit.MILLISECONDS);
 					// System.out.println("here");
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -332,6 +345,7 @@ public class MidiInterface {
 				}
 
 				if (playMessage != null) {
+					gotMessage = true;
 					// System.out.println(playMessage.toString());
 					// boolean partDone = parseMessage(playMessage);
 					boolean partDone = false;
@@ -434,6 +448,7 @@ public class MidiInterface {
 
 				// check for message from main
 				if (mainMessage != null) {
+					gotMessage = true;
 					// if (mainMessage.getType() == Type.SYSTEM_EXIT) {
 					// songDone = true;
 					//
@@ -464,12 +479,13 @@ public class MidiInterface {
 
 				// check for control message
 				if (controlMessage != null) {
+					gotMessage = true;
 					// parse controlMessage
 					int channel = controlMessage.getChannel();
 					switch (controlMessage.getType()) {
 					case START:
 						if (channel == 0 && !started) { // start song
-							startTime = System.currentTimeMillis() / 1000;
+							startTime = (float) System.currentTimeMillis() / 1000;
 							previousSystemTime = startTime;
 							started = true;
 
@@ -593,6 +609,16 @@ public class MidiInterface {
 
 				// change previousSystemTime
 				previousSystemTime = currentSongTime;
+
+				if (!gotMessage) {
+					gotMessage = false;
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 
 				// // clock
 				// double timeFromStart =
