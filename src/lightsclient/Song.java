@@ -7,16 +7,16 @@ public class Song {
 	private String title;
 	private ArrayList<Part> input;
 	private ArrayList<OutputPart> output;
-	private ArrayList<Float> measures;
-	private ArrayList<Float> parts;
+	private ArrayList<Double> measures;
+	private ArrayList<Double> parts;
 
 	public Song(String title) {
 		this.title = title;
 
 		input = new ArrayList<Part>();
 		output = new ArrayList<OutputPart>();
-		measures = new ArrayList<Float>();
-		parts = new ArrayList<Float>();
+		measures = new ArrayList<Double>();
+		parts = new ArrayList<Double>();
 	}
 
 	// override toString()
@@ -83,22 +83,22 @@ public class Song {
 	}
 
 	// get measures
-	public ArrayList<Float> getMeasures() {
+	public ArrayList<Double> getMeasures() {
 		return measures;
 	}
 
 	// set measures
-	public void setMeasures(ArrayList<Float> m) {
+	public void setMeasures(ArrayList<Double> m) {
 		measures = m;
 	}
 
 	// get parts
-	public ArrayList<Float> getParts() {
+	public ArrayList<Double> getParts() {
 		return parts;
 	}
 
 	// set parts
-	public void setParts(ArrayList<Float> p) {
+	public void setParts(ArrayList<Double> p) {
 		parts = p;
 	}
 

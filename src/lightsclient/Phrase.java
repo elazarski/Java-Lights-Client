@@ -5,14 +5,14 @@ public class Phrase {
 		int[] temp = new int[events.length];
 
 		// get average time between events
-		float averageTime = 0;
-		float t1 = events[0].getTime();
+		double averageTime = 0;
+		double t1 = events[0].getTime();
 		for (int i = 1; i < events.length; i++) {
-			float t2 = events[i].getTime();
+			double t2 = events[i].getTime();
 			averageTime += t2 - t1;
 			t1 = t2;
 		}
-		averageTime = averageTime / (float) events.length;
+		averageTime = averageTime / (double) events.length;
 		// System.out.println(averageTime);
 
 		// attempt splitting up by time between notes
@@ -20,7 +20,7 @@ public class Phrase {
 		int startIndex = 0;
 		int currentPhrase = 0;
 		for (int i = 1; i < events.length; i++) {
-			float timeDiff = events[i].getTime() - events[i - 1].getTime();
+			double timeDiff = events[i].getTime() - events[i - 1].getTime();
 			// System.out.println(events[i].getTime() + "-" + events[i -
 			// 1].getTime() + "=" + timeDiff);
 			if (timeDiff > averageTime) {

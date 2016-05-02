@@ -18,7 +18,7 @@ public class OutputPart {
 	private ArrayList<Event> notes;
 	private boolean done = false;
 
-	private float songTime;
+	private double songTime;
 
 	public OutputPart(String[] lines, int channel) {
 		notes = new ArrayList<Event>(lines.length);
@@ -32,8 +32,8 @@ public class OutputPart {
 		this.channel = channel;
 	}
 
-	public float[] getTimes() {
-		float[] ret = new float[notes.size()];
+	public double[] getTimes() {
+		double[] ret = new double[notes.size()];
 
 		for (int i = 0; i < notes.size(); i++) {
 			ret[i] = notes.get(i).getTime();
@@ -130,7 +130,7 @@ public class OutputPart {
 				// check message type
 				switch (message.getType()) {
 				case TIME_UPDATE:
-					songTime = (float) message.getData1();
+					songTime = (double) message.getData1();
 
 					sendIfReady();
 					break;

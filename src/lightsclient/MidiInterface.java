@@ -264,26 +264,26 @@ public class MidiInterface {
 			// play song
 			// measure all times in units of SECONDS
 			boolean songDone = false;
-			float partSongTimes[] = new float[numInput];
+			double partSongTimes[] = new double[numInput];
 			Arrays.fill(partSongTimes, 0);
-			float partSystemTimes[] = new float[numInput];
+			double partSystemTimes[] = new double[numInput];
 			Arrays.fill(partSystemTimes, 0);
 			boolean listenForTime[] = new boolean[numInput];
 			Arrays.fill(listenForTime, false);
-			float currentSongTime = 0;
-			float timeMultiplier = 1;
-			float partTimeMultipliers[] = new float[numInput];
+			double currentSongTime = 0;
+			double timeMultiplier = 1;
+			double partTimeMultipliers[] = new double[numInput];
 			Arrays.fill(partTimeMultipliers, 1);
 			boolean gotMessage = false;
 
 			// start song if no controller, otherwise wait for controller
-			float startTime = 0;
-			float previousSystemTime = 0;
-			float lastUpdate = 0;
+			double startTime = 0;
+			double previousSystemTime = 0;
+			double lastUpdate = 0;
 			boolean started = false;
 			if (controlReceiver == null) {
-				startTime = (float) System.currentTimeMillis() / 1000;
-//				previousSystemTime = startTime;
+				startTime = (double) System.currentTimeMillis() / 1000;
+				previousSystemTime = startTime;
 				started = true;
 
 				// alert inputReceivers to listen
@@ -298,32 +298,35 @@ public class MidiInterface {
 					}
 				}
 			}
-
+			System.out.println(startTime);
 			while (!songDone) {
 
 				// clock
-				float currentSystemTime = 0;
+				double currentSystemTime = 0;
 				if (started) {
-					currentSystemTime = (float) System.currentTimeMillis() / 1000 - startTime;
-					float systemTimeDifference = currentSystemTime;
+					currentSystemTime = (double) System.currentTimeMillis() / 1000 - startTime;
+					double systemTimeDifference = currentSystemTime;
 					if (previousSystemTime != 0) {
 						System.out.println("A");
 						systemTimeDifference = currentSystemTime - previousSystemTime;
 					}
-					
+
+					System.out.println(System.currentTimeMillis());
+
 					if ((systemTimeDifference * timeMultiplier) > 1.5e-7) {
 						currentSongTime += systemTimeDifference * timeMultiplier;
 						System.out.println("here");
 					}
 
-					float timeSinceLastUpdate = currentSystemTime - lastUpdate;
+					double timeSinceLastUpdate = currentSystemTime - lastUpdate;
 
 					// update output parts if necessary
-					if (timeSinceLastUpdate > 0.01) {
+					if (timeSinceLastUpdate > 0.0001) {
 						MyMessage outputMessage = new MyMessage(Type.TIME_UPDATE, currentSongTime);
 						for (LinkedBlockingQueue<MyMessage> c : outputQueues) {
 							c.offer(outputMessage);
 						}
+						lastUpdate = currentSystemTime;
 					}
 
 					System.out.println(currentSystemTime + "=>" + currentSongTime);
@@ -360,22 +363,22 @@ public class MidiInterface {
 						// process message
 						listenForTime[channel] = true;
 
-						float previousPartSongTime = partSongTimes[channel];
-						float previousPartSystemTime = partSystemTimes[channel];
-						float currentPartSongTime = (Float) playMessage.getData1();
-						float nextPartSongTime = (Float) playMessage.getData2();
+						double previousPartSongTime = partSongTimes[channel];
+						double previousPartSystemTime = partSystemTimes[channel];
+						double currentPartSongTime = (Double) playMessage.getData1();
+						double nextPartSongTime = (Double) playMessage.getData2();
 
-						float partSongTimeDifference = currentPartSongTime - previousPartSongTime;
-						float partSystemTimeDifference = currentSystemTime - previousPartSystemTime;
+						double partSongTimeDifference = currentPartSongTime - previousPartSongTime;
+						double partSystemTimeDifference = currentSystemTime - previousPartSystemTime;
 
-						float currentPartTimeMultiplier = partSystemTimeDifference / partSongTimeDifference;
+						double currentPartTimeMultiplier = partSystemTimeDifference / partSongTimeDifference;
 
 						partTimeMultipliers[channel] = currentPartTimeMultiplier;
 
 						// get average of time multipliers and set that to the
 						// official time multiplier
-						float total = 0;
-						float numListen = 0;
+						double total = 0;
+						double numListen = 0;
 						for (int j = 0; j < numInput; j++) {
 							if (listenForTime[j]) {
 								total += partTimeMultipliers[j];
@@ -387,7 +390,7 @@ public class MidiInterface {
 
 						// check to see if we should listen for this one when it
 						// comes time to calculate next times again
-						float timeUntilNextEvent = nextPartSongTime - currentPartSongTime;
+						double timeUntilNextEvent = nextPartSongTime - currentPartSongTime;
 						if (timeUntilNextEvent > 10) {
 							listenForTime[channel] = false;
 						}
@@ -485,7 +488,7 @@ public class MidiInterface {
 					switch (controlMessage.getType()) {
 					case START:
 						if (channel == 0 && !started) { // start song
-							startTime = (float) System.currentTimeMillis() / 1000;
+							startTime = (double) System.currentTimeMillis() / 1000;
 							previousSystemTime = startTime;
 							started = true;
 
@@ -529,9 +532,9 @@ public class MidiInterface {
 						}
 						break;
 					case TIME_UPDATE:
-						Float newTime = (float) 0;
+						Double newTime = (double) 0;
 						for (int j = 0; j < numInput; j++) {
-							Float partTime = inputReceivers.get(j).notify(controlMessage);
+							Double partTime = inputReceivers.get(j).notify(controlMessage);
 
 							if (partTime != null && partTime > newTime) {
 								newTime = partTime;
