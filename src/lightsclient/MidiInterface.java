@@ -307,15 +307,11 @@ public class MidiInterface {
 					currentSystemTime = (double) System.currentTimeMillis() / 1000 - startTime;
 					double systemTimeDifference = currentSystemTime;
 					if (previousSystemTime != 0) {
-						System.out.println("A");
 						systemTimeDifference = currentSystemTime - previousSystemTime;
 					}
 
-					System.out.println(System.currentTimeMillis());
-
 					if ((systemTimeDifference * timeMultiplier) > 1.5e-7) {
 						currentSongTime += systemTimeDifference * timeMultiplier;
-						System.out.println("here");
 					}
 
 					double timeSinceLastUpdate = currentSystemTime - lastUpdate;
@@ -371,10 +367,10 @@ public class MidiInterface {
 						double partSongTimeDifference = currentPartSongTime - previousPartSongTime;
 						double partSystemTimeDifference = currentSystemTime - previousPartSystemTime;
 
-						double currentPartTimeMultiplier = partSystemTimeDifference / partSongTimeDifference;
-
-						partTimeMultipliers[channel] = currentPartTimeMultiplier;
-
+						if (partSongTimeDifference != 0) {
+							double currentPartTimeMultiplier = partSystemTimeDifference / partSongTimeDifference;
+							partTimeMultipliers[channel] = currentPartTimeMultiplier;
+						}
 						// get average of time multipliers and set that to the
 						// official time multiplier
 						double total = 0;
@@ -387,6 +383,7 @@ public class MidiInterface {
 						}
 
 						timeMultiplier = total / numListen;
+						System.out.println(timeMultiplier);
 
 						// check to see if we should listen for this one when it
 						// comes time to calculate next times again

@@ -126,7 +126,7 @@ public class OutputPart {
 			// long time = System.currentTimeMillis() % 1000;
 
 			if (message != null) {
-				System.out.println("GOT MESSAGE");
+				// System.out.println("GOT MESSAGE");
 				// check message type
 				switch (message.getType()) {
 				case TIME_UPDATE:
